@@ -1,6 +1,7 @@
 from typing import Union
 
 import graphene
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Q, QuerySet, Value
 from django.db.models.functions import Concat
 from django.utils import timezone
@@ -170,15 +171,22 @@ def format_permissions_for_display(permissions):
 
     """
     permissions_data = permissions.annotate(
-        formated_codename=Concat("content_type__app_label", Value("."), "codename")
-    ).values("name", "formated_codename")
+        source_groups=ArrayAgg("group"),
+        formated_codename=Concat("content_type__app_label", Value("."), "codename"),
+    ).values("name", "formated_codename", "source_groups")
 
-    formatted_permissions = [
-        PermissionDisplay(
-            code=PermissionEnum.get(data["formated_codename"]), name=data["name"]
+    formatted_permissions = []
+    for data in permissions_data:
+        group_ids = [
+            graphene.Node.to_global_id("Group", pk) for pk in data["source_groups"]
+        ]
+        permission = PermissionDisplay(
+            code=PermissionEnum.get(data["formated_codename"]),
+            name=data["name"],
+            source_permission_groups=group_ids,
         )
-        for data in permissions_data
-    ]
+        formatted_permissions.append(permission)
+
     return formatted_permissions
 
 

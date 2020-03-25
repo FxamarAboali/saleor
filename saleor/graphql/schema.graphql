@@ -3004,6 +3004,7 @@ type PaymentVoid {
 type PermissionDisplay {
   code: PermissionEnum!
   name: String!
+  sourcePermissionGroups: [ID!]
 }
 
 enum PermissionEnum {

@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import django_filters
 import graphene
 import pytest
+from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
@@ -20,6 +21,7 @@ from saleor.graphql.core.utils import (
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import (
     filter_range_field,
+    format_permissions_for_display,
     get_database_id,
     reporting_period_to_date,
 )
@@ -371,3 +373,51 @@ def test_filter_range_field(value, count, product_indexes, product_list):
     expected_products = [qs[index] for index in product_indexes]
     assert result.count() == count
     assert list(result) == expected_products
+
+
+def test_format_permissions_for_display(
+    permission_group_manage_users,
+    permission_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
+):
+    # create another group which also has manage users permissions
+    group2 = Group.objects.create(name="another group")
+    group2.permissions.add(permission_manage_orders, permission_manage_users)
+
+    permissions = [
+        permission_manage_users,
+        permission_manage_orders,
+        permission_manage_products,
+    ]
+    permission_pks = [perm.pk for perm in permissions]
+    permissions = Permission.objects.filter(pk__in=permission_pks)
+    result = format_permissions_for_display(permissions)
+
+    assert len(result) == len(permissions)
+    formated_result = [
+        {
+            "code": perm.code.value,
+            "name": perm.name,
+            "groups": set(perm.source_permission_groups),
+        }
+        for perm in result
+    ]
+    for perm in permissions:
+        source_groups = [
+            graphene.Node.to_global_id("Group", pk)
+            for pk in perm.group_set.all().values_list("pk", flat=True)
+        ]
+        expected_data = {
+            "code": perm.codename,
+            "name": perm.name,
+            "groups": source_groups,
+        }
+        expected_data in formated_result
+
+
+def test_format_permissions_for_display_empty_queryset():
+    permissions = Permission.objects.none()
+    result = format_permissions_for_display(permissions)
+
+    assert result == []

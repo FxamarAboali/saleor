@@ -43,6 +43,11 @@ class PermissionDisplay(graphene.ObjectType):
     name = graphene.String(
         description="Describe action(s) allowed to do by permission.", required=True
     )
+    source_permission_groups = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List if permission groups IDs which contains this permission.",
+        required=False,
+    )
 
     class Meta:
         description = "Represents a permission object in a friendly form."

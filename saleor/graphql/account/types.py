@@ -488,8 +488,14 @@ class Group(CountableDjangoObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="permissions")
     def resolve_permissions(root: auth_models.Group, _info):
-        permissions = root.permissions.prefetch_related("content_type").order_by(
-            "codename"
+        # It must be done in this way, because otherwise annotate for the group
+        # on permissions queryset in 'format_permissions_for_display' return only
+        # root group
+        permission_pks = root.permissions.values_list("pk", flat=True)
+        permissions = (
+            auth_models.Permission.objects.filter(pk__in=permission_pks)
+            .prefetch_related("content_type", "group_set")
+            .order_by("codename")
         )
         return format_permissions_for_display(permissions)
 
