@@ -45,7 +45,7 @@ class Permission(graphene.ObjectType):
     )
     source_permission_groups = graphene.List(
         graphene.NonNull(graphene.ID),
-        description="List if permission groups IDs which contains this permission.",
+        description="List of permission group IDs which contains this permission.",
         required=False,
     )
 
