@@ -1805,7 +1805,7 @@ input GiftCardUpdateInput {
 type Group implements Node {
   id: ID!
   name: String!
-  permissions: [PermissionDisplay]
+  permissions: [Permission]
   users: [User]
   userCanManage: Boolean!
 }
@@ -3001,7 +3001,7 @@ type PaymentVoid {
   paymentErrors: [PaymentError!]!
 }
 
-type PermissionDisplay {
+type Permission {
   code: PermissionEnum!
   name: String!
   sourcePermissionGroups: [ID!]
@@ -3932,7 +3932,7 @@ type ServiceAccount implements Node & ObjectWithMetadata {
   name: String
   created: DateTime
   isActive: Boolean
-  permissions: [PermissionDisplay]
+  permissions: [Permission]
   tokens: [ServiceAccountToken]
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -4189,7 +4189,7 @@ type Shop {
   languages: [LanguageDisplay]!
   name: String!
   navigation: Navigation
-  permissions: [PermissionDisplay]!
+  permissions: [Permission]!
   phonePrefixes: [String]!
   headerText: String
   includeTaxesInPrices: Boolean!
@@ -4568,7 +4568,7 @@ type User implements Node & ObjectWithMetadata {
   checkout: Checkout
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  permissions: [PermissionDisplay]
+  permissions: [Permission]
   permissionGroups: [Group]
   avatar(size: Int): Image
   events: [CustomerEvent]
