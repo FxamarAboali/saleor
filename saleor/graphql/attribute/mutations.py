@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
 
-from ...attribute import AttributeInputType
+from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ...attribute import models as models
 from ...attribute.error_codes import AttributeErrorCode
 from ...core.exceptions import PermissionDenied
@@ -342,19 +342,12 @@ class AttributeMixin:
         Ensure that any invalid operations will be not performed.
         """
         attribute_input_type = cleaned_input.get("input_type") or instance.input_type
-        if attribute_input_type not in [
-            AttributeInputType.FILE,
-            AttributeInputType.REFERENCE,
-        ]:
-            return
         errors = {}
-        for field in [
-            "filterable_in_storefront",
-            "filterable_in_dashboard",
-            "available_in_grid",
-            "storefront_search_position",
-        ]:
-            if cleaned_input.get(field):
+        for field in ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
+            allowed_input_type = ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
+            if attribute_input_type not in allowed_input_type and cleaned_input.get(
+                field
+            ):
                 errors[field] = ValidationError(
                     f"Cannot set on a {attribute_input_type} attribute.",
                     code=AttributeErrorCode.INVALID.value,

@@ -498,6 +498,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
+  DIMENSIONS
 }
 
 type AttributeReorderValues {
@@ -575,6 +576,7 @@ type AttributeValue implements Node {
   inputType: AttributeInputTypeEnum
   reference: ID
   file: File
+  dimensions: Dimensions
 }
 
 type AttributeValueBulkDelete {
@@ -1720,6 +1722,20 @@ type DigitalContentUrlCreate {
 
 input DigitalContentUrlCreateInput {
   content: ID!
+}
+
+enum DimensionUnitsEnum {
+  CM
+  M
+  FT
+  INCH
+}
+
+type Dimensions {
+  length: Float
+  width: Float
+  height: Float
+  unit: DimensionUnitsEnum!
 }
 
 type DiscountError {
