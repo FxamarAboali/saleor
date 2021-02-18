@@ -1,15 +1,18 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 if TYPE_CHECKING:
+    from ..account.models import Address, User
+    from ..channel.models import Channel
     from ..product.models import (
         Collection,
         Product,
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from .models import CheckoutLine
+    from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+    from .models import Checkout, CheckoutLine
 
 logger = logging.getLogger(__name__)
 
@@ -31,3 +34,15 @@ class CheckoutLineInfo:
     channel_listing: "ProductVariantChannelListing"
     product: "Product"
     collections: List["Collection"]
+
+
+@dataclass
+class CheckoutInfo:
+    checkout: "Checkout"
+    user: "User"
+    channel: "Channel"
+    billing_address: "Address"
+    shipping_address: Optional["Address"]
+    shipping_method: Optional["ShippingMethod"]
+    valid_shipping_methods: Iterable["ShippingMethod"]
+    shipping_method_channel_listings: "ShippingMethodChannelListing"

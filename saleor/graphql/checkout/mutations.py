@@ -17,6 +17,7 @@ from ...checkout.utils import (
     add_variants_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
+    fetch_checkout_info,
     fetch_checkout_lines,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
@@ -862,9 +863,11 @@ class CheckoutComplete(BaseMutation):
                 raise e
 
             lines = fetch_checkout_lines(checkout)
+            checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
+
             order, action_required, action_data = complete_checkout(
                 manager=info.context.plugins,
-                checkout=checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,

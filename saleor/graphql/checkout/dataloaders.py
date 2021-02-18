@@ -3,14 +3,19 @@ from collections import defaultdict
 from django.db.models import F
 from promise import Promise
 
-from ...checkout import CheckoutLineInfo
+from ...checkout import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout, CheckoutLine
+from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
+)
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 
 
@@ -91,6 +96,66 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             .load_many(keys)
             .then(with_checkout_lines)
         )
+
+
+class CheckoutInfoByCheckoutTokenLoader(DataLoader):
+    context_key = "checkoutinfo_by_checkout"
+
+    def batch_load(self, keys):
+        def with_channel(checkout):
+            from ..channel.dataloaders import ChannelByIdLoader
+
+            channel = ChannelByIdLoader(checkout.channel_id)
+
+            def with_channel_data(channel):
+                billing_address = AddressByIdLoader(self.context).load(
+                    checkout.billing_adddress_id
+                )
+                shipping_address = AddressByIdLoader(self.context).load(
+                    checkout.shipping_adddress_id
+                )
+                user = UserByUserIdLoader(self.context).load(checkout.user_id)
+                shipping_method = ShippingMethodByIdLoader(self.context).load(
+                    checkout.shipping_method_id
+                )
+                shipping_method_channel_listings = (
+                    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                        self.context
+                    ).load((checkout.shipping_method_id, channel.slug))
+                )
+
+                def with_checkout_info(results):
+                    (
+                        billing_address,
+                        shipping_address,
+                        user,
+                        shipping_method,
+                        channel_listings,
+                    ) = results
+                    return CheckoutInfo(
+                        checkout=checkout,
+                        user=user,
+                        channel=channel,
+                        billing_addres=billing_address,
+                        shipping_address=shipping_address,
+                        shipping_method=shipping_method,
+                        valid_shipping_methods=[],
+                        shipping_method_channel_listings=channel_listings,
+                    )
+
+                return Promise.all(
+                    [
+                        billing_address,
+                        shipping_address,
+                        user,
+                        shipping_method,
+                        shipping_method_channel_listings,
+                    ]
+                ).then(with_checkout_info)
+
+            return channel.then(with_channel_data)
+
+        return CheckoutByTokenLoader(self.context).load_many(keys).then(with_channel)
 
 
 class CheckoutByIdLoader(DataLoader):

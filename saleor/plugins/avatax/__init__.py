@@ -14,12 +14,13 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from ...checkout import CheckoutLineInfo, base_calculations
-from ...checkout.utils import fetch_checkout_lines
+from ...checkout import base_calculations
+from ...checkout.utils import fetch_checkout_lines, is_shipping_required
 from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ...checkout import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order
     from ...product.models import Product, ProductType, ProductVariant
@@ -151,16 +152,18 @@ def _validate_order(order: "Order") -> bool:
     )
 
 
-def _validate_checkout(checkout: "Checkout", lines: Iterable["CheckoutLine"]) -> bool:
+def _validate_checkout(
+    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+) -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
     if not lines:
         return False
 
-    shipping_address = checkout.shipping_address
-    is_shipping_required = checkout.is_shipping_required()
-    address = shipping_address or checkout.billing_address
+    shipping_address = checkout_info.shipping_address
+    is_shipping_required = is_shipping_required(lines)
+    address = shipping_address or checkout_info.billing_address
     return _validate_adddress_details(
-        shipping_address, is_shipping_required, address, checkout.shipping_method
+        shipping_address, is_shipping_required, address, checkout_info.shipping_method
     )
 
 
@@ -358,23 +361,21 @@ def generate_request_data(
 
 
 def generate_request_data_from_checkout(
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     config: AvataxConfiguration,
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
-    discounts=None,
 ):
 
-    address = checkout.shipping_address or checkout.billing_address
-    lines = get_checkout_lines_data(checkout, discounts)
-
-    currency = checkout.currency
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    currency = checkout_info.checkout.currency
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
-        transaction_token=transaction_token or str(checkout.token),
+        transaction_token=transaction_token or str(checkout_info.checkout.token),
         address=address.as_data() if address else {},
-        customer_email=checkout.email,
+        customer_email=checkout_info.user.email,
         config=config,
         currency=currency,
     )
@@ -422,10 +423,12 @@ def get_cached_response_or_fetch(
 
 
 def get_checkout_tax_data(
-    checkout: "Checkout", discounts, config: AvataxConfiguration
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    config: AvataxConfiguration,
 ) -> Dict[str, Any]:
-    data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
-    return get_cached_response_or_fetch(data, str(checkout.token), config)
+    data = generate_request_data_from_checkout(checkout_info, lines, config)
+    return get_cached_response_or_fetch(data, str(checkout_info.checkout.token), config)
 
 
 def get_order_request_data(order: "Order", config: AvataxConfiguration):

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..checkout import CheckoutLineInfo
+    from ..checkout import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
@@ -156,7 +156,7 @@ class BasePlugin:
 
     def calculate_checkout_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -186,7 +186,7 @@ class BasePlugin:
 
     def calculate_checkout_shipping(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -212,7 +212,7 @@ class BasePlugin:
     # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         channel: "Channel",
@@ -257,7 +257,7 @@ class BasePlugin:
 
     def get_checkout_line_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -276,7 +276,7 @@ class BasePlugin:
 
     def get_checkout_shipping_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -331,7 +331,10 @@ class BasePlugin:
         return NotImplemented
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"], previous_value: Any
+        self,
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
+        previous_value: Any,
     ):
         """Trigger directly before order creation.
 

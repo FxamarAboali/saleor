@@ -17,6 +17,7 @@ from ..discount import DiscountInfo
 if TYPE_CHECKING:
     # flake8: noqa
     from ..channel.models import Channel
+    from ..checkout import CheckoutInfo
     from ..product.models import (
         Collection,
         Product,
@@ -26,10 +27,12 @@ if TYPE_CHECKING:
     from .models import Checkout, CheckoutLine
 
 
-def base_checkout_shipping_price(checkout: "Checkout", lines=None) -> TaxedMoney:
+def base_checkout_shipping_price(
+    checkout_info: "CheckoutInfo", lines=None
+) -> TaxedMoney:
     """Return checkout shipping price."""
-    # FIXME: Optimize checkout.is_shipping_required
-    shipping_method = checkout.shipping_method
+    checkout = checkout_info.checkout
+    shipping_method = checkout_info.shipping_method
 
     if lines is not None and all(isinstance(line, CheckoutLineInfo) for line in lines):
         from .utils import is_shipping_required
@@ -40,9 +43,7 @@ def base_checkout_shipping_price(checkout: "Checkout", lines=None) -> TaxedMoney
 
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout.currency)
-    shipping_price = shipping_method.channel_listings.get(
-        channel_id=checkout.channel_id,
-    ).get_total()
+    shipping_price = checkout_info.shipping_channel_listings.get_total()
 
     return quantize_price(
         TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency

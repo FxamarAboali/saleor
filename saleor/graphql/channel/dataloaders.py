@@ -46,6 +46,13 @@ class ChannelByCheckoutLineIDLoader(DataLoader):
         )
 
 
+class ChannelByCheckoutIDLoader(DataLoader):
+    context_key = "channel_by_checkout"
+
+    def batch_load(self, keys):
+        return CheckoutByIdLoader(s)
+
+
 class ChannelByOrderLineIdLoader(DataLoader):
     context_key = "channel_by_orderline"
 

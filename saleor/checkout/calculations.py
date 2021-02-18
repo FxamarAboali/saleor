@@ -10,14 +10,14 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..channel.models import Channel
     from ..plugins.manager import PluginsManager
-    from . import CheckoutLineInfo
+    from . import CheckoutInfo, CheckoutLineInfo
     from .models import Checkout
 
 
 def checkout_shipping_price(
     *,
     manager: "PluginsManager",
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -27,15 +27,15 @@ def checkout_shipping_price(
     It takes in account all plugins.
     """
     calculated_checkout_shipping = manager.calculate_checkout_shipping(
-        checkout, lines, address, discounts or []
+        checkout_info, lines, address, discounts or []
     )
-    return quantize_price(calculated_checkout_shipping, checkout.currency)
+    return quantize_price(calculated_checkout_shipping, checkout_info.checkout.currency)
 
 
 def checkout_subtotal(
     *,
     manager: "PluginsManager",
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -45,9 +45,9 @@ def checkout_subtotal(
     It takes in account all plugins.
     """
     calculated_checkout_subtotal = manager.calculate_checkout_subtotal(
-        checkout, lines, address, discounts or []
+        checkout_info, lines, address, discounts or []
     )
-    return quantize_price(calculated_checkout_subtotal, checkout.currency)
+    return quantize_price(calculated_checkout_subtotal, checkout_info.checkout.currency)
 
 
 def calculate_checkout_total_with_gift_cards(
@@ -74,7 +74,7 @@ def calculate_checkout_total_with_gift_cards(
 def checkout_total(
     *,
     manager: "PluginsManager",
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -87,9 +87,9 @@ def checkout_total(
     It takes in account all plugins.
     """
     calculated_checkout_total = manager.calculate_checkout_total(
-        checkout, lines, address, discounts or []
+        checkout_info, lines, address, discounts or []
     )
-    return quantize_price(calculated_checkout_total, checkout.currency)
+    return quantize_price(calculated_checkout_total, checkout_info.checkout.currency)
 
 
 def checkout_line_total(
