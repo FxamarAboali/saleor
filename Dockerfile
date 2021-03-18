@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.9 as build-python
+FROM python -m venv /app/env as build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -10,6 +10,8 @@ RUN apt-get -y update \
 # Install Python dependencies
 COPY requirements_dev.txt /app/
 WORKDIR /app
+RUN python -m venv /app/env
+ENV PATH="/app/env/bin:$PATH"
 RUN pip install -r requirements_dev.txt
 
 ### Final image
@@ -38,8 +40,8 @@ RUN apt-get update \
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/
 
-COPY --from=build-python /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
-COPY --from=build-python /usr/local/bin/ /usr/local/bin/
+COPY --from=build-python /app/env/lib/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
+COPY --from=build-python /app/env/bin/ /usr/local/bin/
 COPY . /app
 WORKDIR /app
 
