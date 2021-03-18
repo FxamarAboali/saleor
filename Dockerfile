@@ -12,6 +12,7 @@ COPY requirements_dev.txt /app/
 WORKDIR /app
 RUN python -m venv /app/env
 ENV PATH="/app/env/bin:$PATH"
+RUN pip install --upgrade pip
 RUN pip install -r requirements_dev.txt
 
 ### Final image
