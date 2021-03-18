@@ -40,7 +40,7 @@ RUN apt-get update \
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/
 
-COPY --from=build-python /app/env/lib/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
+COPY --from=build-python /app/env/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 COPY --from=build-python /app/env/bin/ /usr/local/bin/
 COPY . /app
 WORKDIR /app
