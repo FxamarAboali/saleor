@@ -27,6 +27,12 @@ from ..payloads import (
     generate_product_variant_payload,
     generate_translation_payload,
 )
+from ..schema import Customer
+
+
+def test_schema_customer_payload(customer_user):
+    payload = generate_customer_payload(customer_user)
+    Customer(**json.loads(payload)[0])
 
 
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
