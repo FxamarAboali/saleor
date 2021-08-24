@@ -169,19 +169,22 @@ class GiftCardCreate(ModelMutation):
             user=info.context.user,
             app=info.context.app,
         )
-        send_gift_card_notification(
-            cleaned_input.get("created_by"),
-            cleaned_input.get("app"),
-            cleaned_input["user_email"],
-            instance,
-            info.context.plugins,
-        )
-        events.gift_card_sent(
-            gift_card_id=instance.id,
-            user_id=info.context.user.id if info.context.user else None,
-            app_id=info.context.app.id if info.context.app else None,
-            email=cleaned_input["user_email"],
-        )
+        if email := cleaned_input.get("user_email"):
+            user = cleaned_input.get("created_by")
+            app = cleaned_input.get("app")
+            send_gift_card_notification(
+                user,
+                app,
+                email,
+                instance,
+                info.context.plugins,
+            )
+            events.gift_card_sent(
+                gift_card_id=instance.id,
+                user_id=user.id if user else None,
+                app_id=app.id if app else None,
+                email=cleaned_input["user_email"],
+            )
 
 
 class GiftCardUpdate(GiftCardCreate):

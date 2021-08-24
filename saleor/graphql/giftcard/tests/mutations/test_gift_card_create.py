@@ -5,15 +5,8 @@ from .....giftcard.error_codes import GiftCardErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 CREATE_GIFT_CARD_MUTATION = """
-    mutation giftCardCreate(
-        $balance: PriceInput!, $userEmail: String, $tag: String,
-        $expiryDate: Date, $note: String, $isActive: Boolean!
-    ){
-        giftCardCreate(input: {
-                balance: $balance, userEmail: $userEmail, tag: $tag,
-                expiryDate: $expiryDate, note: $note,
-                isActive: $isActive
-            }) {
+    mutation giftCardCreate($input: GiftCardCreateInput!){
+        giftCardCreate(input: $input) {
             giftCard {
                 id
                 code
@@ -47,6 +40,7 @@ CREATE_GIFT_CARD_MUTATION = """
                 }
                 events {
                     type
+                    email
                     user {
                         email
                     }
@@ -95,14 +89,15 @@ def test_create_never_expiry_gift_card(
     currency = "USD"
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "userEmail": customer_user.email,
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "isActive": True,
+        }
     }
 
     # when
@@ -136,8 +131,8 @@ def test_create_never_expiry_gift_card(
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
 
-    assert len(data["events"]) == 2
-    created_event, sent_event = data["events"]
+    assert len(data["events"]) == 1
+    created_event = data["events"][0]
 
     assert created_event["type"] == GiftCardEvents.ISSUED.upper()
     assert created_event["user"]["email"] == staff_api_client.user.email
@@ -148,10 +143,6 @@ def test_create_never_expiry_gift_card(
     assert created_event["balance"]["currentBalance"]["currency"] == currency
     assert not created_event["balance"]["oldInitialBalance"]
     assert not created_event["balance"]["oldCurrentBalance"]
-
-    assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
-    assert sent_event["user"]["email"] == staff_api_client.user.email
-    assert not created_event["app"]
 
 
 def test_create_gift_card_by_app(
@@ -165,15 +156,17 @@ def test_create_gift_card_by_app(
     currency = "USD"
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "userEmail": customer_user.email,
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "expiryDate": None,
-        "isActive": False,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "userEmail": customer_user.email,
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "expiryDate": None,
+            "isActive": False,
+        }
     }
 
     # when
@@ -218,6 +211,7 @@ def test_create_gift_card_by_app(
 
     assert sent_event["type"] == GiftCardEvents.SENT_TO_CUSTOMER.upper()
     assert not sent_event["user"]
+    assert sent_event["email"] == customer_user.email
     assert sent_event["app"]["name"] == app_api_client.app.name
 
 
@@ -227,15 +221,17 @@ def test_create_gift_card_by_customer(api_client, customer_user):
     currency = "USD"
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "userEmail": customer_user.email,
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "expiryDate": None,
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "userEmail": customer_user.email,
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "expiryDate": None,
+            "isActive": True,
+        }
     }
 
     # when
@@ -254,14 +250,16 @@ def test_create_gift_card_no_premissions(staff_api_client):
     currency = "USD"
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "expiryDate": None,
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "expiryDate": None,
+            "isActive": True,
+        }
     }
 
     # when
@@ -286,14 +284,16 @@ def test_create_gift_card_with_too_many_decimal_places_in_balance_amount(
     currency = "USD"
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "userEmail": customer_user.email,
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "userEmail": customer_user.email,
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "isActive": True,
+        }
     }
 
     # when
@@ -329,14 +329,16 @@ def test_create_gift_card_with_malformed_email(
     currency = "USD"
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "userEmail": "malformed",
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "userEmail": "malformed",
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "isActive": True,
+        }
     }
 
     # when
@@ -373,14 +375,16 @@ def test_create_gift_card_with_zero_balance_amount(
     currency = "USD"
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": 0,
-            "currency": currency,
-        },
-        "userEmail": customer_user.email,
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": 0,
+                "currency": currency,
+            },
+            "userEmail": customer_user.email,
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "isActive": True,
+        }
     }
 
     # when
@@ -418,15 +422,17 @@ def test_create_gift_card_with_expiry_date(
     date_value = date.today() + timedelta(days=365)
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "userEmail": customer_user.email,
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "expiryDate": date_value,
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "userEmail": customer_user.email,
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "expiryDate": date_value,
+            "isActive": True,
+        }
     }
 
     # when
@@ -481,15 +487,17 @@ def test_create_gift_card_with_expiry_date_type_date_in_past(
     date_value = date(1999, 1, 1)
     tag = "gift-card-tag"
     variables = {
-        "balance": {
-            "amount": initial_balance,
-            "currency": currency,
-        },
-        "userEmail": customer_user.email,
-        "tag": tag,
-        "note": "This is gift card note that will be save in gift card event.",
-        "expiryDate": date_value,
-        "isActive": True,
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "userEmail": customer_user.email,
+            "tag": tag,
+            "note": "This is gift card note that will be save in gift card event.",
+            "expiryDate": date_value,
+            "isActive": True,
+        }
     }
 
     # when
