@@ -4,13 +4,15 @@ from typing import Iterable, Union
 
 from graphql.execution.base import ResolveInfo
 
-from .utils import get_user_or_app_from_context
 from ..attribute import AttributeType
 from ..core.exceptions import PermissionDenied
-from ..core.permissions import AccountPermissions, PagePermissions, ProductPermissions, \
-    has_one_of_permissions
-
+from ..core.permissions import (
+    PagePermissions,
+    ProductPermissions,
+    has_one_of_permissions,
+)
 from ..core.permissions import permission_required as core_permission_required
+from .utils import get_user_or_app_from_context
 
 
 def context(f):
@@ -57,37 +59,15 @@ def account_passes_test_for_attribute(test_func):
     return decorator
 
 
-def _permission_required(perms: Iterable[Enum], context):
-    if context.user.has_perms(perms):
-        return True
-    app = getattr(context, "app", None)
-    if app:
-        # for now MANAGE_STAFF permission for app is not supported
-        if AccountPermissions.MANAGE_STAFF in perms:
-            return False
-        return app.has_perms(perms)
-    return False
-
-
-# def permission_required(perm: Union[Enum, Iterable[Enum]]):
-#     def check_perms(context):
-#         if isinstance(perm, Enum):
-#             perms = (perm,)
-#         else:
-#             perms = perm
-#
-#         requestor = get_user_or_app_from_context(context)
-#         return core_permission_required(perms, requestor)
-#
-#     return account_passes_test(check_perms)
-
 def permission_required(perm: Union[Enum, Iterable[Enum]]):
     def check_perms(context):
         if isinstance(perm, Enum):
             perms = (perm,)
         else:
             perms = perm
-        return _permission_required(perms, context)
+
+        requestor = get_user_or_app_from_context(context)
+        return core_permission_required(perms, requestor)
 
     return account_passes_test(check_perms)
 
@@ -95,7 +75,7 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
 def one_of_permissions_required(perms: Iterable[Enum]):
     def check_perms(context):
         requestor = get_user_or_app_from_context(context)
-        has_one_of_permissions(requestor, perms)
+        return has_one_of_permissions(requestor, perms)
 
     return account_passes_test(check_perms)
 
@@ -121,6 +101,8 @@ def check_attribute_required_permissions():
         requestor = get_user_or_app_from_context(context)
         if attribute.type == AttributeType.PAGE_TYPE:
             return core_permission_required((PagePermissions.MANAGE_PAGES,), requestor)
-        return core_permission_required((ProductPermissions.MANAGE_PRODUCTS,), requestor)
+        return core_permission_required(
+            (ProductPermissions.MANAGE_PRODUCTS,), requestor
+        )
 
     return account_passes_test_for_attribute(check_perms)
