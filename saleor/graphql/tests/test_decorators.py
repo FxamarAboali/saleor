@@ -6,8 +6,9 @@ from ...core.permissions import (
     CheckoutPermissions,
     OrderPermissions,
     get_permissions_from_names,
+
 )
-from ..decorators import _permission_required
+from ...core.permissions import permission_required as core_permission_required
 
 
 @pytest.mark.parametrize(
@@ -45,7 +46,7 @@ def test_permission_required_with_limited_permissions(
     staff_user.effective_permissions = get_permissions_from_names(effective_permissions)
     request = rf.request()
     request.user = staff_user
-    has_perms = _permission_required(permissions_required, request)
+    has_perms = core_permission_required(permissions_required, request)
     assert has_perms == access_granted
 
 
@@ -79,5 +80,5 @@ def test_permission_required(
     )
     request = rf.request()
     request.user = staff_user
-    has_perms = _permission_required(permissions_required, request)
+    has_perms = core_permission_required(permissions_required, request)
     assert has_perms == access_granted

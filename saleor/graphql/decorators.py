@@ -4,9 +4,13 @@ from typing import Iterable, Union
 
 from graphql.execution.base import ResolveInfo
 
+from .utils import get_user_or_app_from_context
 from ..attribute import AttributeType
 from ..core.exceptions import PermissionDenied
-from ..core.permissions import AccountPermissions, PagePermissions, ProductPermissions
+from ..core.permissions import AccountPermissions, PagePermissions, ProductPermissions, \
+    has_one_of_permissions
+
+from ..core.permissions import permission_required as core_permission_required
 
 
 def context(f):
@@ -65,6 +69,18 @@ def _permission_required(perms: Iterable[Enum], context):
     return False
 
 
+# def permission_required(perm: Union[Enum, Iterable[Enum]]):
+#     def check_perms(context):
+#         if isinstance(perm, Enum):
+#             perms = (perm,)
+#         else:
+#             perms = perm
+#
+#         requestor = get_user_or_app_from_context(context)
+#         return core_permission_required(perms, requestor)
+#
+#     return account_passes_test(check_perms)
+
 def permission_required(perm: Union[Enum, Iterable[Enum]]):
     def check_perms(context):
         if isinstance(perm, Enum):
@@ -78,11 +94,8 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
 
 def one_of_permissions_required(perms: Iterable[Enum]):
     def check_perms(context):
-        for perm in perms:
-            has_perm = _permission_required((perm,), context)
-            if has_perm:
-                return True
-        return False
+        requestor = get_user_or_app_from_context(context)
+        has_one_of_permissions(requestor, perms)
 
     return account_passes_test(check_perms)
 
@@ -105,8 +118,9 @@ def check_attribute_required_permissions():
     """
 
     def check_perms(context, attribute):
+        requestor = get_user_or_app_from_context(context)
         if attribute.type == AttributeType.PAGE_TYPE:
-            return _permission_required((PagePermissions.MANAGE_PAGES,), context)
-        return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
+            return core_permission_required((PagePermissions.MANAGE_PAGES,), requestor)
+        return core_permission_required((ProductPermissions.MANAGE_PRODUCTS,), requestor)
 
     return account_passes_test_for_attribute(check_perms)
