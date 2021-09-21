@@ -62,6 +62,20 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     assert is_valid_method is True
 
 
+def test_clean_delivery_method_does_not_need_shipping_address_when_pickup(
+    checkout_with_item_for_cc, warehouse_for_cc
+):
+    checkout = checkout_with_item_for_cc
+    checkout.shipping_address = None
+    checkout.save(update_fields=["shipping_address"])
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    is_valid_method = clean_delivery_method(checkout_info, lines, warehouse_for_cc)
+    assert is_valid_method is True
+
+
 def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     checkout_with_single_item, address, other_shipping_method
 ):

@@ -246,7 +246,7 @@ def fetch_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
     valid_pick_up_points = get_valid_collection_points_for_checkout_info(
-        shipping_address, lines, checkout_info
+        checkout_info, shipping_address, lines
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
     checkout_info.valid_pick_up_points = valid_pick_up_points
@@ -297,9 +297,9 @@ def get_valid_shipping_method_list_for_checkout_info(
 
 
 def get_valid_collection_points_for_checkout_info(
+    checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
-    checkout_info: CheckoutInfo,
 ):
     from .utils import get_valid_collection_points_for_checkout
 
