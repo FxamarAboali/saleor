@@ -76,6 +76,33 @@ def activate_gift_card(gift_card: GiftCard):
         gift_card.save(update_fields=["is_active"])
 
 
+def deactivate_order_gift_cards(
+    order_id: int, user: Optional["User"], app: Optional["App"]
+):
+    gift_cards = get_gift_cards_purchased_in_order(order_id)
+    deactivate_gift_cards(gift_cards, user, app)
+
+
+def get_gift_cards_purchased_in_order(order_id: int):
+    gift_card_events = GiftCardEvent.objects.filter(
+        type=GiftCardEvents.BOUGHT, parameters__order_id=order_id
+    )
+    gift_cards = GiftCard.objects.filter(
+        Exists(gift_card_events.filter(gift_card_id=OuterRef("id")))
+    )
+    return gift_cards
+
+
+def deactivate_gift_cards(
+    gift_cards: "QuerySet", user: Optional["User"], app: Optional["App"]
+):
+    if gift_cards:
+        gift_cards.update(is_active=False)
+        events.gift_cards_deactivated_event(
+            gift_cards.values_list("id", flat=True), user, app
+        )
+
+
 def fulfill_non_shippable_gift_cards(
     order: "Order",
     order_lines: Iterable[OrderLine],
@@ -235,21 +262,6 @@ def send_gift_cards_to_customer(
             channel_slug,
             resending=False,
         )
-
-
-def deactivate_order_gift_cards(
-    order_id: int, user: Optional["User"], app: Optional["App"]
-):
-    gift_card_events = GiftCardEvent.objects.filter(
-        type=GiftCardEvents.BOUGHT, parameters__order_id=order_id
-    )
-    gift_cards = GiftCard.objects.filter(
-        Exists(gift_card_events.filter(gift_card_id=OuterRef("id")))
-    )
-    gift_cards.update(is_active=False)
-    events.gift_cards_deactivated_event(
-        gift_cards.values_list("id", flat=True), user, app
-    )
 
 
 def order_has_gift_card_lines(order):

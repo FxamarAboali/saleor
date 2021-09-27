@@ -4840,22 +4840,105 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
 
 
 def test_order_refund_with_gift_card_lines(
-    staff_api_client, permission_manage_orders, gift_card_shippable_order_line
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_captured,
+    gift_card,
+    gift_card_shippable_order_line,
+    customer_user,
 ):
+    # given
     order = gift_card_shippable_order_line.order
+
+    amount = float(payment_txn_captured.total)
+    order.total_paid_amount = amount
+    order.save(update_fields=["total_paid_amount"])
+
+    gift_card.current_balance_amount = (
+        gift_card_shippable_order_line.total_price_gross.amount
+    )
+    gift_card.initial_balance_amount = (
+        gift_card_shippable_order_line.total_price_gross.amount
+    )
+    gift_card.save(update_fields=["current_balance_amount", "initial_balance_amount"])
+
+    gift_cards_bought_event([gift_card], order.id, customer_user, None)
+
     query = ORDER_REFUND_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
 
-    variables = {"id": order_id, "amount": 10.0}
+    variables = {"id": order_id, "amount": amount}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["paymentStatus"] == PaymentChargeStatusEnum.FULLY_REFUNDED.name
+    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_REFUNDED)
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert data["isPaid"] is False
+
+    refund_order_event = order.events.filter(
+        type=order_events.OrderEvents.PAYMENT_REFUNDED
+    ).first()
+    assert refund_order_event.parameters["amount"] == str(amount)
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+    assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
+    assert refunded_fulfillment.shipping_refund_amount is None
+
+    gift_card.refresh_from_db()
+    assert gift_card.is_active is True
+
+
+def test_order_refund_with_used_gift_card_lines(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+    gift_card_used,
+    gift_card_shippable_order_line,
+    customer_user,
+):
+    # given
+    order = gift_card_shippable_order_line.order
+    assert order.lines.count() == 2
+
+    order.total_paid_amount = (
+        order_line.total_price_gross_amount + gift_card_used.initial_balance_amount
+    )
+    order.save(update_fields=["total_paid_amount"])
+
+    gift_cards_bought_event([gift_card_used], order.id, customer_user, None)
+
+    query = ORDER_REFUND_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    amount = order.total_paid_amount
+    variables = {"id": order_id, "amount": amount}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderRefund"]
     assert not data["order"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
-    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["field"] == "amount"
+    gift_card_used.refresh_from_db()
+    assert gift_card_used.is_active
 
 
 @pytest.mark.parametrize(

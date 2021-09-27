@@ -1,13 +1,20 @@
+from decimal import Decimal
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Sum, Value
+from django.db.models.functions import Coalesce
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_lines
+from ....giftcard.utils import (
+    deactivate_order_gift_cards,
+    get_gift_cards_purchased_in_order,
+)
 from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
@@ -154,18 +161,6 @@ def try_payment_action(order, user, app, payment, func, *args, **kwargs):
         )
         raise ValidationError(
             {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
-        )
-
-
-def clean_order_refund(order):
-    if order_has_gift_card_lines(order):
-        raise ValidationError(
-            {
-                "id": ValidationError(
-                    "Cannot refund order with gift card lines.",
-                    code=OrderErrorCode.CANNOT_REFUND.value,
-                )
-            }
         )
 
 
@@ -623,6 +618,32 @@ class OrderRefund(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
+    def clean_gift_card_order_lines(cls, order, amount):
+        gift_cards = get_gift_cards_purchased_in_order(order.id)
+        if not gift_cards:
+            return
+        gift_cards_balance = gift_cards.aggregate(
+            total_current_balance=Sum("current_balance_amount")
+        )["total_current_balance"]
+        not_gift_card_lines_balance = order.lines.filter(is_gift_card=False).aggregate(
+            total_amount=Coalesce(Sum("total_price_gross_amount"), Value(Decimal(0)))
+        )["total_amount"]
+        max_refund_amount = min(
+            [order.total_paid.amount, gift_cards_balance + not_gift_card_lines_balance]
+        )
+        if amount > max_refund_amount:
+            raise ValidationError(
+                {
+                    "amount": ValidationError(
+                        "Cannot refund more than order value minus amount already spent"
+                        " from gift cards.",
+                        code=OrderErrorCode.CANNOT_REFUND.value,
+                    )
+                }
+            )
+
+    @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, amount, **data):
         if amount <= 0:
             raise ValidationError(
@@ -635,19 +656,22 @@ class OrderRefund(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        clean_order_refund(order)
+        cls.clean_gift_card_order_lines(order, amount)
 
         payment = order.get_last_payment()
         clean_refund_payment(payment)
 
+        user = info.context.user
+        app = info.context.app
+        plugins = info.context.plugins
         transaction = try_payment_action(
             order,
-            info.context.user,
-            info.context.app,
+            user,
+            app,
             payment,
             gateway.refund,
             payment,
-            info.context.plugins,
+            plugins,
             amount=amount,
             channel_slug=order.channel.slug,
         )
@@ -660,11 +684,11 @@ class OrderRefund(BaseMutation):
         if transaction.kind == TransactionKind.REFUND:
             order_refunded(
                 order,
-                info.context.user,
-                info.context.app,
+                user,
+                app,
                 amount,
                 payment,
-                info.context.plugins,
+                plugins,
             )
         return OrderRefund(order=order)
 
