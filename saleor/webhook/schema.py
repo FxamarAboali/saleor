@@ -154,18 +154,9 @@ class OrderFulfillment(BaseWebhookModel):
     total_refund_amount: Optional[Decimal]
 
 
-class Order(BaseWebhookModel):
+class BaseOrder(BaseWebhookModel):
     type: str
     id: str
-    channel: Channel
-    shipping_method: ShippingMethod
-    payments: List[Payment]
-    shipping_address: Address
-    billing_address: Address
-    discounts: List[OrderDiscount]
-    original: str
-    lines: List[OrderLine]
-    fulfillments: List[OrderFulfillment]
     private_metadata: Any
     metadata: Any
     created: datetime
@@ -181,6 +172,18 @@ class Order(BaseWebhookModel):
     undiscounted_total_net_amount: Decimal
     undiscounted_total_gross_amount: Decimal
     weight: str
+
+
+class Order(BaseOrder):
+    channel: Channel
+    shipping_method: ShippingMethod
+    payments: List[Payment]
+    shipping_address: Address
+    billing_address: Address
+    discounts: List[OrderDiscount]
+    original: str
+    lines: List[OrderLine]
+    fulfillments: List[OrderFulfillment]
 
 
 class CheckoutUser(BaseWebhookModel):
@@ -212,7 +215,7 @@ class Checkout(BaseWebhookModel):
     private_metadata: Any
     metadata: Any
     created: datetime
-    last_change: str
+    last_change: datetime
     email: str
     currency: str
     discount_amount: Decimal
@@ -292,18 +295,14 @@ class ProductVariant(BaseWebhookModel):
     track_inventory: bool
 
 
-class ProductData(BaseWebhookModel):
-    text: str
-
-
-class ProductBlock(BaseWebhookModel):
-    data: ProductData
+class Block(BaseWebhookModel):
+    data: Any
     type: str
 
 
-class ProductDescription(BaseWebhookModel):
+class Content(BaseWebhookModel):
     time: int
-    blocks: List[ProductBlock]
+    blocks: List[Block]
     version: str
 
 
@@ -314,7 +313,7 @@ class ProductDeleted(BaseWebhookModel):
     private_metadata: Any
     metadata: Any
     name: str
-    description: ProductDescription
+    description: Content
     updated_at: datetime
     charge_taxes: bool
     weight: str
@@ -332,7 +331,7 @@ class Product(BaseWebhookModel):
     private_metadata: Any
     metadata: Any
     name: str
-    description: ProductDescription
+    description: Content
     updated_at: datetime
     charge_taxes: bool
     weight: str
@@ -347,6 +346,57 @@ class FulfillmentCreated(BaseWebhookModel):
     status: str
     shipping_refund_amount: Optional[Decimal]
     total_refund_amount: Optional[Decimal]
+
+
+class Page(BaseWebhookModel):
+    type: str
+    id: str
+    publication_date: str
+    is_published: bool
+    private_metadata: Any
+    metadata: Any
+    title: str
+    content: Content
+
+
+class TranslationKey(BaseWebhookModel):
+    key: str
+    value: Union[str, Content]
+
+
+class Translation(BaseWebhookModel):
+    id: str
+    language_code: str
+    type: str
+    keys: List[TranslationKey]
+
+
+class Invoice(BaseWebhookModel):
+    type: str
+    id: str
+    order: BaseOrder
+    number: Optional[str]
+    created: Optional[datetime]
+    external_url: Optional[str]
+
+
+class SyncPayment(BaseWebhookModel):
+    gateway: str
+    amount: str
+    currency: str
+    billing: Address
+    shipping: Address
+    payment_id: int
+    graphql_payment_id: str
+    order_id: int
+    customer_ip_address: str
+    customer_email: str
+    token: Optional[str]
+    customer_id: Optional[str]
+    reuse_source: bool
+    data: Any
+    graphql_customer_id: Optional[str]
+    payment_method: str
 
 
 class CustomerCreated(Customer):
@@ -397,22 +447,115 @@ class ProductUpdated(Product):
     ...
 
 
+class ProductVariantCreated(ProductVariant):
+    ...
+
+
+class ProductVariantUpdated(ProductVariant):
+    ...
+
+
+class ProductVariantDeleted(ProductVariant):
+    ...
+
+
+class PageCreated(Page):
+    ...
+
+
+class PageUpdated(Page):
+    ...
+
+
+class PageDeleted(Page):
+    ...
+
+
+class TranslationCreated(Translation):
+    ...
+
+
+class TranslationUpdated(Translation):
+    ...
+
+
+class InvoiceRequested(Invoice):
+    ...
+
+
+class InvoiceDeleted(Invoice):
+    ...
+
+
+class InvoiceSent(Invoice):
+    ...
+
+
+class PaymentListGateways(BaseWebhookModel):
+    checkout: Checkout
+    currency: str
+
+
+class PaymentAuthorize(SyncPayment):
+    ...
+
+
+class PaymentCapture(SyncPayment):
+    ...
+
+
+class PaymentRefund(SyncPayment):
+    ...
+
+
+class PaymentVoid(SyncPayment):
+    ...
+
+
+class PaymentConfirm(SyncPayment):
+    ...
+
+
+class PaymentProcess(SyncPayment):
+    ...
+
+
 class WebhookSchema(BaseModel):
-    __root__: List[
-        Union[
-            FulfillmentCreated,
-            CheckoutCreated,
-            CheckoutUpdated,
-            CustomerCreated,
-            CustomerUpdated,
-            ProductCreated,
-            ProductUpdated,
-            ProductDeleted,
-            OrderCreated,
-            OrderConfirmed,
-            OrderCancelled,
-            OrderFulfilled,
-            OrderFullyPaid,
-            OrderUpdated,
-        ]
+    __root__: Union[
+        List[
+            Union[
+                FulfillmentCreated,
+                CheckoutCreated,
+                CheckoutUpdated,
+                CustomerCreated,
+                CustomerUpdated,
+                InvoiceDeleted,
+                InvoiceRequested,
+                InvoiceSent,
+                PageCreated,
+                PageDeleted,
+                PageUpdated,
+                ProductCreated,
+                ProductDeleted,
+                ProductUpdated,
+                ProductVariantCreated,
+                ProductVariantDeleted,
+                ProductVariantUpdated,
+                OrderCancelled,
+                OrderConfirmed,
+                OrderCreated,
+                OrderFulfilled,
+                OrderFullyPaid,
+                OrderUpdated,
+            ]
+        ],
+        PaymentAuthorize,
+        PaymentCapture,
+        PaymentConfirm,
+        PaymentListGateways,
+        PaymentProcess,
+        PaymentRefund,
+        PaymentVoid,
+        TranslationCreated,
+        TranslationUpdated,
     ]
