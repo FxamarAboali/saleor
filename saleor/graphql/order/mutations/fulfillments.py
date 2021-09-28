@@ -8,6 +8,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import (
+    deactivate_order_gift_cards,
     get_gift_card_lines,
     gift_cards_create,
     order_has_gift_card_lines,
@@ -383,11 +384,10 @@ class FulfillmentCancel(BaseMutation):
             )
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
         order = fulfillment.order
-
-        cls.validate_order(order)
 
         warehouse = None
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
@@ -399,22 +399,28 @@ class FulfillmentCancel(BaseMutation):
 
         cls.validate_fulfillment(fulfillment, warehouse)
 
+        user = info.context.user
+        app = info.context.app
+        plugins = info.context.plugins
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
             fulfillment = cancel_waiting_fulfillment(
                 fulfillment,
-                info.context.user,
-                info.context.app,
-                info.context.plugins,
+                user,
+                app,
+                plugins,
             )
         else:
             fulfillment = cancel_fulfillment(
                 fulfillment,
-                info.context.user,
-                info.context.app,
+                user,
+                app,
                 warehouse,
-                info.context.plugins,
+                plugins,
             )
         order.refresh_from_db(fields=["status"])
+
+        deactivate_order_gift_cards(order.id, user, app)
+
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
 
 

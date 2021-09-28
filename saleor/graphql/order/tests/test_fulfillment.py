@@ -5,6 +5,7 @@ import pytest
 
 from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....giftcard import GiftCardEvents
+from ....giftcard.events import gift_cards_bought_event
 from ....giftcard.models import GiftCard, GiftCardEvent
 from ....order import OrderLineData, OrderStatus
 from ....order.actions import fulfill_order_lines
@@ -1299,6 +1300,7 @@ def test_cancel_fulfillment(
 def test_cancel_fulfillment_for_order_with_gift_card_lines(
     staff_api_client,
     fulfillment,
+    gift_card,
     gift_card_shippable_order_line,
     staff_user,
     permission_manage_orders,
@@ -1306,6 +1308,7 @@ def test_cancel_fulfillment_for_order_with_gift_card_lines(
 ):
     query = CANCEL_FULFILLMENT_MUTATION
     order = gift_card_shippable_order_line.order
+    gift_cards_bought_event([gift_card], order.id, staff_user, None)
     order_fulfillment = order.fulfillments.first()
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", order_fulfillment.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
@@ -1315,10 +1318,12 @@ def test_cancel_fulfillment_for_order_with_gift_card_lines(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentCancel"]
-    assert not data["fulfillment"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_CANCEL_FULFILLMENT.name
-    assert data["errors"][0]["field"] == "fulfillment"
+    assert not data["errors"]
+    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    assert data["order"]["status"] == OrderStatus.UNFULFILLED.upper()
+    gift_card.refresh_from_db()
+    assert gift_card.is_active is False
+    assert gift_card.events.filter(type=GiftCardEvents.DEACTIVATED).exists()
 
 
 def test_cancel_fulfillment_no_warehouse_id(
