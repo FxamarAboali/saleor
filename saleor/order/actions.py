@@ -375,6 +375,8 @@ def approve_fulfillment(
     notify_customer=True,
     allow_stock_to_be_exceeded: bool = False,
 ):
+    from ..giftcard.utils import activate_gift_cards, get_gift_cards_purchased_in_order
+
     fulfillment.status = FulfillmentStatus.FULFILLED
     fulfillment.save()
     order = fulfillment.order
@@ -402,9 +404,15 @@ def approve_fulfillment(
     if order.status == OrderStatus.FULFILLED:
         transaction.on_commit(lambda: manager.order_fulfilled(order))
 
-    create_gift_cards_when_approving_fulfillment(
-        fulfillment.order, lines_to_fulfill, user, app, manager, settings
-    )
+    purchased_gift_cards = get_gift_cards_purchased_in_order(order.id)
+    if purchased_gift_cards:
+        # when gift cards was already created but fulfillment was canceled,
+        # activate existing gift cards
+        activate_gift_cards(purchased_gift_cards, user, app)
+    else:
+        create_gift_cards_when_approving_fulfillment(
+            fulfillment.order, lines_to_fulfill, user, app, manager, settings
+        )
 
     return fulfillment
 
