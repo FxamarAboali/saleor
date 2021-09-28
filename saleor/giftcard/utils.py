@@ -96,11 +96,21 @@ def get_gift_cards_purchased_in_order(order_id: int):
 def deactivate_gift_cards(
     gift_cards: "QuerySet", user: Optional["User"], app: Optional["App"]
 ):
+    gift_cards = gift_cards.filter(is_active=True)
     if gift_cards:
+        gift_card_ids = [gift_card.id for gift_card in gift_cards]
         gift_cards.update(is_active=False)
-        events.gift_cards_deactivated_event(
-            gift_cards.values_list("id", flat=True), user, app
-        )
+        events.gift_cards_deactivated_event(gift_card_ids, user, app)
+
+
+def activate_gift_cards(
+    gift_cards: "QuerySet", user: Optional["User"], app: Optional["App"]
+):
+    gift_cards = gift_cards.filter(is_active=False)
+    if gift_cards:
+        gift_card_ids = [gift_card.id for gift_card in gift_cards]
+        gift_cards.update(is_active=True)
+        events.gift_cards_activated_event(gift_card_ids, user, app)
 
 
 def fulfill_non_shippable_gift_cards(

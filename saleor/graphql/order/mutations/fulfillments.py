@@ -8,8 +8,10 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import (
+    activate_gift_cards,
     deactivate_order_gift_cards,
     get_gift_card_lines,
+    get_gift_cards_purchased_in_order,
     gift_cards_create,
     order_has_gift_card_lines,
 )
@@ -252,7 +254,12 @@ class OrderFulfill(BaseMutation):
 
         approved = info.context.site.settings.fulfillment_auto_approve
 
-        if approved:
+        purchased_gift_cards = get_gift_cards_purchased_in_order(order.id)
+        if purchased_gift_cards:
+            # when gift cards was already created but fulfillment was canceled,
+            # activate existing gift cards
+            activate_gift_cards(purchased_gift_cards, user, app)
+        elif approved:
             gift_cards_create(
                 order,
                 gift_card_lines,

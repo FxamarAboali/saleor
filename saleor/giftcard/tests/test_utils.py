@@ -14,10 +14,12 @@ from ...site import GiftCardSettingsExpiryType
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation
 from .. import GiftCardEvents, events
-from ..models import GiftCardEvent
+from ..models import GiftCard, GiftCardEvent
 from ..utils import (
+    activate_gift_cards,
     add_gift_card_code_to_checkout,
     calculate_expiry_date,
+    deactivate_gift_cards,
     deactivate_order_gift_cards,
     fulfill_gift_card_lines,
     fulfill_non_shippable_gift_cards,
@@ -675,3 +677,86 @@ def test_is_gift_card_expired_false(expiry_date, gift_card):
 
     # then
     assert result is False
+
+
+def test_deactivate_gift_cards(
+    gift_card, gift_card_expiry_date, gift_card_used, staff_user
+):
+    # given
+    gift_card.is_active = False
+    gift_card.save(update_fields=["is_active"])
+
+    cards = [gift_card_expiry_date, gift_card_used]
+    for card in cards:
+        assert card.is_active is True
+
+    # when
+    deactivate_gift_cards(GiftCard.objects.all(), staff_user, None)
+
+    # then
+    for card in cards:
+        card.refresh_from_db()
+        assert card.is_active is False
+        assert card.events.filter(type=GiftCardEvents.DEACTIVATED)
+
+    gift_card.refresh_from_db()
+    assert gift_card.is_active is False
+    assert not gift_card.events.filter(type=GiftCardEvents.DEACTIVATED)
+
+
+def test_deactivate_gift_cards_no_card_deactivated(
+    gift_card, gift_card_expiry_date, staff_user
+):
+    # given
+    gift_card.is_active = False
+    gift_card_expiry_date.is_active = False
+    GiftCard.objects.bulk_update([gift_card, gift_card_expiry_date], ["is_active"])
+
+    events_count = GiftCardEvent.objects.count()
+
+    # when
+    deactivate_gift_cards(GiftCard.objects.all(), staff_user, None)
+
+    # then
+    assert GiftCardEvent.objects.count() == events_count
+
+
+def test_activate_gift_cards(
+    gift_card, gift_card_expiry_date, gift_card_used, staff_user
+):
+    # given
+    gift_card.is_active = False
+    gift_card.save(update_fields=["is_active"])
+
+    cards = [gift_card_expiry_date, gift_card_used]
+    for card in cards:
+        assert card.is_active is True
+
+    # when
+    activate_gift_cards(GiftCard.objects.all(), staff_user, None)
+
+    # then
+    for card in cards:
+        card.refresh_from_db()
+        assert card.is_active is True
+        assert not card.events.filter(type=GiftCardEvents.ACTIVATED)
+
+    gift_card.refresh_from_db()
+    assert gift_card.is_active is True
+    assert gift_card.events.filter(type=GiftCardEvents.ACTIVATED)
+
+
+def test_activate_gift_cards_no_card_activated(
+    gift_card, gift_card_expiry_date, staff_user
+):
+    # given
+    assert gift_card.is_active is True
+    assert gift_card_expiry_date.is_active is True
+
+    events_count = GiftCardEvent.objects.count()
+
+    # when
+    activate_gift_cards(GiftCard.objects.all(), staff_user, None)
+
+    # then
+    assert GiftCardEvent.objects.count() == events_count
