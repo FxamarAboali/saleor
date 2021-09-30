@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Sum
 
 from ..account.models import User
 from ..core import analytics
@@ -1371,7 +1372,20 @@ def _calculate_refund_amount(
         if line_data.line.fulfillment.status == FulfillmentStatus.REFUNDED:
             continue
         order_line = order_lines_with_fulfillment[line_data.line.order_line_id]
-        refund_amount += line_data.quantity * order_line.unit_price_gross_amount
+
+        # when gift card line is refunded amount from gift cards with the biggest
+        # current balance are taken
+        if order_line.is_gift_card:
+            fulfillment_line = line_data.line
+            refund_amount += fulfillment_line.gift_cards.order_by(
+                "-current_balance_amount"
+            )[: line_data.quantity].aggregate(
+                total_current_balance=Sum("current_balance_amount")
+            )[
+                "total_current_balance"
+            ]
+        else:
+            refund_amount += line_data.quantity * order_line.unit_price_gross_amount
 
         data_from_all_refunded_lines = lines_to_refund.get(order_line.id)
         if data_from_all_refunded_lines:
@@ -1396,16 +1410,28 @@ def _process_refund(
     manager: "PluginsManager",
 ):
     lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
+    max_refund_amount = _calculate_refund_amount(
+        order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
+    )
+    if refund_shipping_costs:
+        max_refund_amount += order.shipping_price_gross_amount
+
     if amount is None:
-        amount = _calculate_refund_amount(
-            order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
-        )
-        # we take into consideration the shipping costs only when amount is not
-        # provided.
-        if refund_shipping_costs:
-            amount += order.shipping_price_gross_amount
-    if amount:
+        amount = max_refund_amount
+    else:
+        if amount > max_refund_amount:
+            return ValidationError(
+                {
+                    "amount_to_refund": ValidationError(
+                        "Cannot refund more than order value minus amount already spent"
+                        " from gift cards.",
+                        code=OrderErrorCode.CANNOT_REFUND.value,
+                    )
+                }
+            )
         amount = min(payment.captured_amount, amount)
+
+    if amount:
         try:
             gateway.refund(
                 payment, manager, amount=amount, channel_slug=order.channel.slug

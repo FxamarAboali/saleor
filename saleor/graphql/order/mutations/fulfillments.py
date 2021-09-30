@@ -254,23 +254,6 @@ class OrderFulfill(BaseMutation):
 
         approved = info.context.site.settings.fulfillment_auto_approve
 
-        if approved:
-            purchased_gift_cards = get_gift_cards_purchased_in_order(order.id)
-            if purchased_gift_cards:
-                # when gift cards was already created but fulfillment was canceled,
-                # activate existing gift cards
-                activate_gift_cards(purchased_gift_cards, user, app)
-            else:
-                gift_cards_create(
-                    order,
-                    gift_card_lines,
-                    quantities,
-                    context.site.settings,
-                    user,
-                    app,
-                    manager,
-                )
-
         try:
             fulfillments = create_fulfillments(
                 user,
@@ -285,6 +268,24 @@ class OrderFulfill(BaseMutation):
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
             raise ValidationError({"stocks": errors})
+
+        if approved:
+            purchased_gift_cards = get_gift_cards_purchased_in_order(order.id)
+            if purchased_gift_cards:
+                # when gift cards was already created but fulfillment was canceled,
+                # activate existing gift cards
+                # TODO: should we assign new fulfillments line when activating
+                activate_gift_cards(purchased_gift_cards, user, app)
+            else:
+                gift_cards_create(
+                    order,
+                    gift_card_lines,
+                    quantities,
+                    context.site.settings,
+                    user,
+                    app,
+                    manager,
+                )
 
         return OrderFulfill(fulfillments=fulfillments, order=order)
 
@@ -553,18 +554,6 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
     @classmethod
     def clean_amount_to_refund(cls, order, amount_to_refund, payment, cleaned_input):
         if amount_to_refund is not None:
-            if order_has_gift_card_lines(order):
-                raise ValidationError(
-                    {
-                        "amount_to_refund": ValidationError(
-                            (
-                                "Cannot specified amount to refund when order has "
-                                "gift card lines."
-                            ),
-                            code=OrderErrorCode.CANNOT_REFUND.value,
-                        )
-                    }
-                )
             if amount_to_refund > payment.captured_amount:
                 raise ValidationError(
                     {
@@ -610,14 +599,6 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         cleaned_fulfillment_lines = []
         for line, line_data in zip(fulfillment_lines, fulfillment_lines_data):
             quantity = line_data["quantity"]
-            if line.order_line.is_gift_card:
-                cls._raise_error_for_line(
-                    "Cannot refund or return gift card line.",
-                    "FulfillmentLine",
-                    line.pk,
-                    "fulfillment_line_id",
-                    OrderErrorCode.GIFT_CARD_LINE.value,
-                )
             if line.quantity < quantity:
                 cls._raise_error_for_line(
                     "Provided quantity is bigger than quantity from "
@@ -667,14 +648,6 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         cleaned_order_lines = []
         for line, line_data in zip(order_lines, lines_data):
             quantity = line_data["quantity"]
-            if line.is_gift_card:
-                cls._raise_error_for_line(
-                    "Cannot refund or return gift card line.",
-                    "OrderLine",
-                    line.pk,
-                    "order_line_id",
-                    OrderErrorCode.GIFT_CARD_LINE.value,
-                )
             if line.quantity < quantity:
                 cls._raise_error_for_line(
                     "Provided quantity is bigger than quantity from order line.",
@@ -692,6 +665,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                 )
             replace = line_data.get("replace", False)
             if replace and not line.variant_id:
+                # TODO: block for gift cards
                 cls._raise_error_for_line(
                     "Unable to replace line as the assigned product doesn't exist.",
                     "OrderLine",
