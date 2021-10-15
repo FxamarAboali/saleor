@@ -58,7 +58,7 @@ class TranslatableKinds(graphene.Enum):
     PAGE = "Page"
     PRODUCT = "Product"
     SALE = "Sale"
-    SHIPPING_METHOD = "ShippingMethodType"
+    SHIPPING_METHOD = "ShippingMethod"
     VARIANT = "ProductVariant"
     VOUCHER = "Voucher"
 

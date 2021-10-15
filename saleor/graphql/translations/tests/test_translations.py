@@ -1843,10 +1843,6 @@ SHIPPING_PRICE_TRANSLATE = """
                     }
                 }
             }
-            errors {
-                message
-                code
-            }
         }
     }
 """
@@ -1862,7 +1858,7 @@ def test_shipping_method_create_translation(
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_method.id
+        "ShippingMethod", shipping_method.id
     )
     description = dummy_editorjs("description", True)
     variables = {
@@ -1942,7 +1938,7 @@ def test_shipping_method_update_translation(
     """
 
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_method.id
+        "ShippingMethod", shipping_method.id
     )
     response = staff_api_client.post_graphql(
         query,
@@ -2535,7 +2531,7 @@ def test_translation_query_shipping_method(
     return_shipping_method,
 ):
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_method.id
+        "ShippingMethod", shipping_method.id
     )
     perms = list(Permission.objects.filter(codename__in=perm_codenames))
 

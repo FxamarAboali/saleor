@@ -27,6 +27,18 @@ query GetShippingMethods($channel: String) {
               name
             }
           }
+          price {
+            amount
+            currency
+          }
+          maximumOrderPrice {
+            currency
+            amount
+          }
+          minimumOrderPrice {
+            currency
+            amount
+          }
         }
       }
     }
@@ -122,7 +134,7 @@ def test_exclude_products_for_shipping_method(
     ]
 
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_method.pk
+        "ShippingMethod", shipping_method.pk
     )
     variables = {
         "id": shipping_method_id,
@@ -152,7 +164,7 @@ def test_exclude_products_for_shipping_method_already_has_excluded_products(
     permission_manage_shipping,
 ):
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_method.pk
+        "ShippingMethod", shipping_method.pk
     )
     shipping_method.excluded_products.add(product, product_list[0])
     product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
@@ -208,7 +220,7 @@ def test_remove_products_from_excluded_products_for_shipping_method(
     product,
 ):
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_method.pk
+        "ShippingMethod", shipping_method.pk
     )
     shipping_method.excluded_products.set(product_list)
     shipping_method.excluded_products.add(product)

@@ -18,7 +18,7 @@ FRAGMENT_DISCOUNTS = """
   }
 """
 
-FRAGMENT_SHIPPING_METHODS = """
+FRAGMENT_AVAILABLE_SHIPPING_METHODS = """
     fragment AvailableShippingMethods on ShippingMethod {
         id
         price {
@@ -28,6 +28,7 @@ FRAGMENT_SHIPPING_METHODS = """
             amount
             currency
         }
+        type
     }
 """
 
@@ -35,7 +36,7 @@ FRAGMENT_ORDER_DETAILS = (
     FRAGMENT_ADDRESS
     + FRAGMENT_PRODUCT_VARIANT
     + FRAGMENT_DISCOUNTS
-    + FRAGMENT_SHIPPING_METHODS
+    + FRAGMENT_AVAILABLE_SHIPPING_METHODS
     + """
       fragment OrderDetail on Order {
         userEmail
