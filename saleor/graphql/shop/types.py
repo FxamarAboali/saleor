@@ -23,6 +23,7 @@ from ..decorators import (
     staff_member_or_app_required,
     staff_member_required,
 )
+from ..page.utils import get_countries_list
 from ..shipping.types import ShippingMethod
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
@@ -128,6 +129,10 @@ class Shop(graphene.ObjectType):
                 "A language code to return the translation for."
             ),
         ),
+        in_shipping_zones=graphene.Boolean(
+            description="Only countries that have shipping zones assigned",
+            required=False,
+        ),
         description="List of countries available in the shop.",
         required=True,
     )
@@ -222,8 +227,9 @@ class Shop(graphene.ObjectType):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
-    def resolve_countries(_, _info, language_code=None):
+    def resolve_countries(_, _info, language_code=None, in_shipping_zones=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
+        countries_list = get_countries_list(in_shipping_zones)
 
         # DEPRECATED: translation.override will be dropped in Saleor 4.0
         with translation.override(language_code):
@@ -231,7 +237,7 @@ class Shop(graphene.ObjectType):
                 CountryDisplay(
                     code=country[0], country=country[1], vat=taxes.get(country[0])
                 )
-                for country in countries
+                for country in countries_list
             ]
 
     @staticmethod
