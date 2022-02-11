@@ -317,7 +317,7 @@ input AppInstallInput {
   appName: String
   manifestUrl: String
   activateAfterInstallation: Boolean = true
-  permissions: [PermissionEnum]
+  permissions: [PermissionEnum!]
 }
 
 type AppInstallation implements Node & Job {
