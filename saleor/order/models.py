@@ -83,6 +83,10 @@ class OrderQueryset(models.QuerySet):
 
 
 class Order(ModelWithMetadata):
+    token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    number = models.IntegerField(unique=True)
+    use_old_id = models.BooleanField(default=False)
+
     created = models.DateTimeField(default=now, editable=False)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
@@ -177,7 +181,6 @@ class Order(ModelWithMetadata):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    token = models.CharField(max_length=36, unique=True, blank=True)
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
 
@@ -268,11 +271,6 @@ class Order(ModelWithMetadata):
                 opclasses=["gin_trgm_ops"],
             ),
         ]
-
-    def save(self, *args, **kwargs):
-        if not self.token:
-            self.token = str(uuid4())
-        return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
         return self.total_paid >= self.total.gross

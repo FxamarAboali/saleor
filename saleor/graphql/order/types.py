@@ -1,7 +1,7 @@
 import logging
+import uuid
 from decimal import Decimal
 from typing import Optional
-from uuid import UUID
 
 import graphene
 import prices
@@ -57,7 +57,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
-from ..core.scalars import PositiveDecimal
+from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import ModelObjectType, Money, TaxedMoney, Weight
 from ..core.types.common import Image, OrderError
 from ..core.utils import str_to_enum
@@ -343,7 +343,7 @@ class OrderEvent(ModelObjectType):
     @staticmethod
     def resolve_warehouse(root: models.OrderEvent, info):
         if warehouse_pk := root.parameters.get("warehouse"):
-            return WarehouseByIdLoader(info.context).load(UUID(warehouse_pk))
+            return WarehouseByIdLoader(info.context).load(uuid.UUID(warehouse_pk))
         return None
 
     @staticmethod
@@ -622,6 +622,7 @@ class OrderLine(ModelObjectType):
 
 class Order(ModelObjectType):
     id = graphene.GlobalID(required=True)
+    token = graphene.Field(UUID, description="The checkout's token.", required=True)
     created = graphene.DateTime(required=True)
     status = OrderStatusEnum(required=True)
     user = graphene.Field(User)
