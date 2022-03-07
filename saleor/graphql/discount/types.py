@@ -344,7 +344,7 @@ class VoucherCountableConnection(CountableConnection):
         node = Voucher
 
 
-class OrderDiscount(ModelObjectType):
+class BaseObjectDiscount(graphene.Interface):
     id = graphene.GlobalID(required=True)
     type = OrderDiscountTypeEnum(required=True)
     name = graphene.String()
@@ -361,6 +361,9 @@ class OrderDiscount(ModelObjectType):
     reason = graphene.String(
         required=False, description="Explanation for the applied discount."
     )
+
+
+class OrderDiscount(ModelObjectType):
     amount = graphene.Field(
         Money, description="Returns amount of discount.", required=True
     )
@@ -369,10 +372,43 @@ class OrderDiscount(ModelObjectType):
         description = (
             "Contains all details related to the applied discount to the order."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, BaseObjectDiscount]
         model = models.OrderDiscount
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_reason(root: models.OrderDiscount, _info):
         return root.reason
+
+
+class OrderLineDiscount(ModelObjectType):
+    class Meta:
+        description = (
+            "Contains all details related to the applied discount to the order line."
+        )
+        interfaces = [relay.Node, BaseObjectDiscount]
+        # TODO: Change to real model, in final PR.
+        model = models.OrderDiscount
+        # model = models.OrderLineDiscount
+
+
+class CheckoutDiscount(ModelObjectType):
+    class Meta:
+        description = (
+            "Contains all details related to the applied discount to the checkout."
+        )
+        interfaces = [relay.Node, BaseObjectDiscount]
+        # TODO: Change to real model, in final PR.
+        model = models.OrderDiscount
+        # model = models.CheckoutDiscount
+
+
+class CheckoutLineDiscount(ModelObjectType):
+    class Meta:
+        description = (
+            "Contains all details related to the applied discount to the checkout line."
+        )
+        interfaces = [relay.Node, BaseObjectDiscount]
+        # TODO: Change to real model, in final PR.
+        model = models.OrderDiscount
+        # model = models.CheckoutLineDiscount

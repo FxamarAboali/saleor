@@ -778,6 +778,16 @@ input AttributeValueUpdateInput {
   name: String
 }
 
+interface BaseObjectDiscount {
+  id: ID!
+  type: OrderDiscountType!
+  name: String
+  translatedName: String
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
+}
+
 input BulkAttributeValueInput {
   id: ID
   values: [String!]
@@ -1019,6 +1029,7 @@ type Checkout implements Node & ObjectWithMetadata {
   note: String!
   discount: Money
   discountName: String
+  discounts: [CheckoutDiscount!]
   translatedDiscountName: String
   voucherCode: String
   availableShippingMethods: [ShippingMethod]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
@@ -1104,6 +1115,16 @@ type CheckoutDeliveryMethodUpdate {
   errors: [CheckoutError!]!
 }
 
+type CheckoutDiscount implements Node & BaseObjectDiscount {
+  id: ID!
+  type: OrderDiscountType!
+  name: String
+  translatedName: String
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
+}
+
 type CheckoutEmailUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -1169,6 +1190,7 @@ type CheckoutLine implements Node {
   quantity: Int!
   totalPrice: TaxedMoney
   requiresShipping: Boolean
+  discounts: [CheckoutLineDiscount!]
 }
 
 type CheckoutLineCountableConnection {
@@ -1186,6 +1208,16 @@ type CheckoutLineDelete {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+type CheckoutLineDiscount implements Node & BaseObjectDiscount {
+  id: ID!
+  type: OrderDiscountType!
+  name: String
+  translatedName: String
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
 }
 
 input CheckoutLineInput {
@@ -4310,7 +4342,7 @@ enum OrderDirection {
   DESC
 }
 
-type OrderDiscount implements Node {
+type OrderDiscount implements Node & BaseObjectDiscount {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -4576,6 +4608,7 @@ type OrderLine implements Node {
   allocations: [Allocation!]
   quantityToFulfill: Int!
   unitDiscountType: DiscountValueTypeEnum
+  discounts: [OrderLineDiscount!]
 }
 
 input OrderLineCreateInput {
@@ -4588,6 +4621,16 @@ type OrderLineDelete {
   orderLine: OrderLine
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+}
+
+type OrderLineDiscount implements Node & BaseObjectDiscount {
+  id: ID!
+  type: OrderDiscountType!
+  name: String
+  translatedName: String
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
 }
 
 type OrderLineDiscountRemove {

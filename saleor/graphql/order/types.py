@@ -489,6 +489,11 @@ class OrderLine(ModelObjectType):
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
     )
+    discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.OrderLineDiscount"),
+        description="List of all discounts assigned to the order line.",
+        required=False,
+    )
 
     class Meta:
         description = "Represents order line of particular order."

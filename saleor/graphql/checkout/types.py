@@ -82,6 +82,11 @@ class CheckoutLine(ModelObjectType):
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered."
     )
+    discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.CheckoutLineDiscount"),
+        description="List of all discounts assigned to the checkout line.",
+        required=False,
+    )
 
     class Meta:
         description = "Represents an item in the checkout."
@@ -194,6 +199,11 @@ class Checkout(ModelObjectType):
     note = graphene.String(required=True)
     discount = graphene.Field(Money)
     discount_name = graphene.String()
+    discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.CheckoutDiscount"),
+        description="List of all discounts assigned to the checkout.",
+        required=False,
+    )
     translated_discount_name = graphene.String()
     voucher_code = graphene.String()
     available_shipping_methods = graphene.List(
