@@ -26,7 +26,8 @@ from ...discount.enums import DiscountValueTypeEnum
 from ..types import Order, OrderLine
 
 
-class OrderDiscountCommonInput(graphene.InputObjectType):
+# TODO: We should move it to discount module
+class DiscountCommonInput(graphene.InputObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -99,7 +100,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
 
     class Arguments:
         order_id = graphene.ID(description="ID of an order to discount.", required=True)
-        input = OrderDiscountCommonInput(
+        input = DiscountCommonInput(
             required=True,
             description="Fields required to create a discount for the order.",
         )
@@ -161,7 +162,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         discount_id = graphene.ID(
             description="ID of a discount to update.", required=True
         )
-        input = OrderDiscountCommonInput(
+        input = DiscountCommonInput(
             required=True,
             description="Fields required to update a discount for the order.",
         )
@@ -258,6 +259,29 @@ class OrderDiscountDelete(OrderDiscountCommon):
         return OrderDiscountDelete(order=order)
 
 
+class OrderLineDiscountAdd(OrderDiscountCommon):
+    order_line = graphene.Field(
+        OrderLine, description="Order line which has removed discount."
+    )
+    order = graphene.Field(
+        Order, description="Order which is related to line which has removed discount."
+    )
+
+    class Arguments:
+        discount_id = graphene.ID(
+            description="ID of a discount to remove.", required=True
+        )
+        input = DiscountCommonInput(
+            required=True,
+            description="Fields required to update price for the order line.",
+        )
+
+    class Meta:
+        description = "Add discounts for the order line."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+
+
 class OrderLineDiscountUpdate(OrderDiscountCommon):
     order_line = graphene.Field(
         OrderLine, description="Order line which has been discounted."
@@ -267,16 +291,16 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     )
 
     class Arguments:
-        order_line_id = graphene.ID(
-            description="ID of a order line to update price", required=True
-        )
-        input = OrderDiscountCommonInput(
+        # TODO: Deprecate it, works only if this line contains only single discount
+        order_line_id = graphene.ID(description="ID of a order line to update price")
+        discount_id = graphene.ID(description="ID of a discount to remove.")
+        input = DiscountCommonInput(
             required=True,
             description="Fields required to update price for the order line.",
         )
 
     class Meta:
-        description = "Update discount for the order line."
+        description = "Update discounts for the order line."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -342,9 +366,9 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     )
 
     class Arguments:
-        order_line_id = graphene.ID(
-            description="ID of a order line to remove its discount", required=True
-        )
+        # Deprecate it, works only if this line contains only single discount
+        order_line_id = graphene.ID(description="ID of a order line to update price")
+        discount_id = graphene.ID(description="ID of a discount to remove.")
 
     class Meta:
         description = "Remove discount applied to the order line."

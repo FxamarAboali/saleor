@@ -16,6 +16,7 @@ from .mutations.discount_order import (
     OrderDiscountAdd,
     OrderDiscountDelete,
     OrderDiscountUpdate,
+    OrderLineDiscountAdd,
     OrderLineDiscountRemove,
     OrderLineDiscountUpdate,
 )
@@ -172,6 +173,7 @@ class OrderMutations(graphene.ObjectType):
     order_discount_update = OrderDiscountUpdate.Field()
     order_discount_delete = OrderDiscountDelete.Field()
 
+    order_line_discount_add = OrderLineDiscountAdd.Field()
     order_line_discount_update = OrderLineDiscountUpdate.Field()
     order_line_discount_remove = OrderLineDiscountRemove.Field()
 
