@@ -1125,6 +1125,21 @@ type CheckoutDiscount implements Node & BaseObjectDiscount {
   reason: String
 }
 
+type CheckoutDiscountAdd {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+type CheckoutDiscountDelete {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+type CheckoutDiscountUpdate {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
 type CheckoutEmailUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -1218,6 +1233,24 @@ type CheckoutLineDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+}
+
+type CheckoutLineDiscountAdd {
+  checkoutLine: CheckoutLine
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+type CheckoutLineDiscountDelete {
+  checkoutLine: CheckoutLine
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+type CheckoutLineDiscountUpdate {
+  checkoutLine: CheckoutLine
+  checkout: Checkout
+  errors: [CheckoutError!]!
 }
 
 input CheckoutLineInput {
@@ -4064,7 +4097,7 @@ type Mutation {
   orderDiscountAdd(input: DiscountCommonInput!, orderId: ID!): OrderDiscountAdd
   orderDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): OrderDiscountUpdate
   orderDiscountDelete(discountId: ID!): OrderDiscountDelete
-  orderLineDiscountAdd(discountId: ID!, input: DiscountCommonInput!): OrderLineDiscountAdd
+  orderLineDiscountAdd(input: DiscountCommonInput!, orderLineId: ID!): OrderLineDiscountAdd
   orderLineDiscountUpdate(discountId: ID, input: DiscountCommonInput!, orderLineId: ID): OrderLineDiscountUpdate
   orderLineDiscountRemove(discountId: ID, orderLineId: ID): OrderLineDiscountRemove
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
@@ -4143,6 +4176,12 @@ type Mutation {
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
   checkoutDeliveryMethodUpdate(deliveryMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
+  checkoutDiscountAdd(input: DiscountCommonInput!, token: UUID!): CheckoutDiscountAdd
+  checkoutDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): CheckoutDiscountUpdate
+  checkoutDiscountDelete(discountId: ID!): CheckoutDiscountDelete
+  checkoutLineDiscountAdd(checkoutLineId: ID!, input: DiscountCommonInput!): CheckoutLineDiscountAdd
+  checkoutLineDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): CheckoutLineDiscountUpdate
+  checkoutLineDiscountDelete(discountId: ID!): CheckoutLineDiscountDelete
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete

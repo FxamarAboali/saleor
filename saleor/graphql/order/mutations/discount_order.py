@@ -268,8 +268,8 @@ class OrderLineDiscountAdd(OrderDiscountCommon):
     )
 
     class Arguments:
-        discount_id = graphene.ID(
-            description="ID of a discount to remove.", required=True
+        order_line_id = graphene.ID(
+            description="ID of a order line to update price", required=True
         )
         input = DiscountCommonInput(
             required=True,
@@ -366,7 +366,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     )
 
     class Arguments:
-        # Deprecate it, works only if this line contains only single discount
+        # TODO: Deprecate it, works only if this line contains only single discount
         order_line_id = graphene.ID(description="ID of a order line to update price")
         discount_id = graphene.ID(description="ID of a discount to remove.")
 
