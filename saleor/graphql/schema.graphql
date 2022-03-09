@@ -786,6 +786,7 @@ interface BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  active: Boolean!
 }
 
 input BulkAttributeValueInput {
@@ -1124,6 +1125,7 @@ type CheckoutDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  active: Boolean!
 }
 
 type CheckoutDiscountAdd {
@@ -1234,6 +1236,7 @@ type CheckoutLineDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  active: Boolean!
 }
 
 type CheckoutLineDiscountAdd {
@@ -1303,6 +1306,7 @@ type CheckoutShippingDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  active: Boolean!
 }
 
 type CheckoutShippingDiscountAdd {
@@ -4430,6 +4434,7 @@ type OrderDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  active: Boolean!
   amount: Money!
 }
 
@@ -4705,6 +4710,7 @@ type OrderLineDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  active: Boolean!
 }
 
 type OrderLineDiscountAdd {
@@ -4841,6 +4847,7 @@ type OrderShippingDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  active: Boolean!
 }
 
 type OrderShippingDiscountAdd {

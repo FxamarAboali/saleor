@@ -361,6 +361,9 @@ class BaseObjectDiscount(graphene.Interface):
     reason = graphene.String(
         required=False, description="Explanation for the applied discount."
     )
+    active = graphene.Boolean(
+        required=True, description="Determines if a discount active."
+    )
 
 
 class OrderDiscount(ModelObjectType):
