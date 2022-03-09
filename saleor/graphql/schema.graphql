@@ -1305,6 +1305,21 @@ type CheckoutShippingDiscount implements Node & BaseObjectDiscount {
   reason: String
 }
 
+type CheckoutShippingDiscountAdd {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+type CheckoutShippingDiscountDelete {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+type CheckoutShippingDiscountUpdate {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
 type CheckoutShippingMethodUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -4197,6 +4212,9 @@ type Mutation {
   checkoutLineDiscountAdd(checkoutLineId: ID!, input: DiscountCommonInput!): CheckoutLineDiscountAdd
   checkoutLineDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): CheckoutLineDiscountUpdate
   checkoutLineDiscountDelete(discountId: ID!): CheckoutLineDiscountDelete
+  checkoutShippingDiscountAdd(input: DiscountCommonInput!, token: UUID!): CheckoutShippingDiscountAdd
+  checkoutShippingDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): CheckoutShippingDiscountUpdate
+  checkoutShippingDiscountDelete(discountId: ID!): CheckoutShippingDiscountDelete
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete

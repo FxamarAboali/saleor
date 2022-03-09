@@ -30,6 +30,9 @@ from .mutations import (
     CheckoutLinesUpdate,
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
+    CheckoutShippingDiscountAdd,
+    CheckoutShippingDiscountDelete,
+    CheckoutShippingDiscountUpdate,
     CheckoutShippingMethodUpdate,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
@@ -115,3 +118,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_line_discount_add = CheckoutLineDiscountAdd.Field()
     checkout_line_discount_update = CheckoutLineDiscountUpdate.Field()
     checkout_line_discount_delete = CheckoutLineDiscountDelete.Field()
+
+    checkout_shipping_discount_add = CheckoutShippingDiscountAdd.Field()
+    checkout_shipping_discount_update = CheckoutShippingDiscountUpdate.Field()
+    checkout_shipping_discount_delete = CheckoutShippingDiscountDelete.Field()
