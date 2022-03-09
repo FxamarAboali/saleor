@@ -204,6 +204,11 @@ class Checkout(ModelObjectType):
         description="List of all discounts assigned to the checkout.",
         required=False,
     )
+    shipping_discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.CheckoutShippingDiscount"),
+        description="List of all shipping discounts assigned to the checkout.",
+        required=False,
+    )
     translated_discount_name = graphene.String()
     voucher_code = graphene.String()
     available_shipping_methods = graphene.List(

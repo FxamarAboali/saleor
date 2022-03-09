@@ -1030,6 +1030,7 @@ type Checkout implements Node & ObjectWithMetadata {
   discount: Money
   discountName: String
   discounts: [CheckoutDiscount!]
+  shippingDiscounts: [CheckoutShippingDiscount!]
   translatedDiscountName: String
   voucherCode: String
   availableShippingMethods: [ShippingMethod]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
@@ -1292,6 +1293,16 @@ type CheckoutShippingAddressUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+type CheckoutShippingDiscount implements Node & BaseObjectDiscount {
+  id: ID!
+  type: OrderDiscountType!
+  name: String
+  translatedName: String
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
 }
 
 type CheckoutShippingMethodUpdate {
@@ -4327,6 +4338,7 @@ type Order implements Node & ObjectWithMetadata {
   discountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead.")
   translatedDiscountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead. ")
   discounts: [OrderDiscount!]
+  shippingDiscounts: [OrderShippingDiscount!]
   errors: [OrderError!]!
 }
 
@@ -4790,6 +4802,16 @@ type OrderSettingsUpdate {
 input OrderSettingsUpdateInput {
   automaticallyConfirmAllNewOrders: Boolean
   automaticallyFulfillNonShippableGiftCard: Boolean
+}
+
+type OrderShippingDiscount implements Node & BaseObjectDiscount {
+  id: ID!
+  type: OrderDiscountType!
+  name: String
+  translatedName: String
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
 }
 
 enum OrderSortField {

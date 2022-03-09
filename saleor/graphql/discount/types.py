@@ -392,6 +392,18 @@ class OrderLineDiscount(ModelObjectType):
         # model = models.OrderLineDiscount
 
 
+class OrderShippingDiscount(ModelObjectType):
+    class Meta:
+        description = (
+            "Contains all details related to the applied discount to "
+            "the order shipping."
+        )
+        interfaces = [relay.Node, BaseObjectDiscount]
+        # TODO: Change to real model, in final PR.
+        model = models.OrderDiscount
+        # model = models.OrderShippingDiscount
+
+
 class CheckoutDiscount(ModelObjectType):
     class Meta:
         description = (
@@ -412,3 +424,15 @@ class CheckoutLineDiscount(ModelObjectType):
         # TODO: Change to real model, in final PR.
         model = models.OrderDiscount
         # model = models.CheckoutLineDiscount
+
+
+class CheckoutShippingDiscount(ModelObjectType):
+    class Meta:
+        description = (
+            "Contains all details related to the applied discount to "
+            "the checkout shipping."
+        )
+        interfaces = [relay.Node, BaseObjectDiscount]
+        # TODO: Change to real model, in final PR.
+        model = models.OrderDiscount
+        # model = models.CheckoutShippingDiscount

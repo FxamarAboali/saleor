@@ -785,6 +785,11 @@ class Order(ModelObjectType):
         description="List of all discounts assigned to the order.",
         required=False,
     )
+    shipping_discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.OrderShippingDiscount"),
+        description="List of all shipping discounts assigned to the order.",
+        required=False,
+    )
     errors = graphene.List(
         graphene.NonNull(OrderError),
         description="List of errors that occurred during order validation.",
