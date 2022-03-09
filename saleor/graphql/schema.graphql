@@ -4109,8 +4109,12 @@ type Mutation {
   orderDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): OrderDiscountUpdate
   orderDiscountDelete(discountId: ID!): OrderDiscountDelete
   orderLineDiscountAdd(input: DiscountCommonInput!, orderLineId: ID!): OrderLineDiscountAdd
+  orderLineDiscountDelete(discountId: ID!): OrderLineDiscountDelete
   orderLineDiscountUpdate(discountId: ID, input: DiscountCommonInput!, orderLineId: ID): OrderLineDiscountUpdate
-  orderLineDiscountRemove(discountId: ID, orderLineId: ID): OrderLineDiscountRemove
+  orderLineDiscountRemove(orderLineId: ID!): OrderLineDiscountRemove
+  orderShippingDiscountAdd(input: DiscountCommonInput!, orderId: ID!): OrderShippingDiscountAdd
+  orderShippingDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): OrderShippingDiscountUpdate
+  orderShippingDiscountDelete(discountId: ID!): OrderShippingDiscountDelete
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -4691,6 +4695,13 @@ type OrderLineDiscountAdd {
   errors: [OrderError!]!
 }
 
+type OrderLineDiscountDelete {
+  orderLine: OrderLine
+  order: Order
+  orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [OrderError!]!
+}
+
 type OrderLineDiscountRemove {
   orderLine: OrderLine
   order: Order
@@ -4812,6 +4823,21 @@ type OrderShippingDiscount implements Node & BaseObjectDiscount {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+}
+
+type OrderShippingDiscountAdd {
+  order: Order
+  errors: [OrderError!]!
+}
+
+type OrderShippingDiscountDelete {
+  order: Order
+  errors: [OrderError!]!
+}
+
+type OrderShippingDiscountUpdate {
+  order: Order
+  errors: [OrderError!]!
 }
 
 enum OrderSortField {

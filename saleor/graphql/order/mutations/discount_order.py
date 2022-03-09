@@ -261,10 +261,10 @@ class OrderDiscountDelete(OrderDiscountCommon):
 
 class OrderLineDiscountAdd(OrderDiscountCommon):
     order_line = graphene.Field(
-        OrderLine, description="Order line which has removed discount."
+        OrderLine, description="Order line which has added discount."
     )
     order = graphene.Field(
-        Order, description="Order which is related to line which has removed discount."
+        Order, description="Order which is related to line which has added discount."
     )
 
     class Arguments:
@@ -366,11 +366,12 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     )
 
     class Arguments:
-        # TODO: Deprecate it, works only if this line contains only single discount
-        order_line_id = graphene.ID(description="ID of a order line to update price")
-        discount_id = graphene.ID(description="ID of a discount to remove.")
+        order_line_id = graphene.ID(
+            description="ID of a order line to remove its discount", required=True
+        )
 
     class Meta:
+        # TODO: This mutation will be deprecated. We should use OrderLineDiscountDelete
         description = "Remove discount applied to the order line."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
@@ -403,3 +404,76 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
         recalculate_order(order)
         return OrderLineDiscountRemove(order_line=order_line, order=order)
+
+
+class OrderLineDiscountDelete(OrderDiscountCommon):
+    order_line = graphene.Field(
+        OrderLine, description="Order line which has removed discount."
+    )
+    order = graphene.Field(
+        Order, description="Order which is related to line which has removed discount."
+    )
+
+    class Arguments:
+        discount_id = graphene.ID(
+            description="ID of a discount to remove.", required=True
+        )
+
+    class Meta:
+        # TODO: This mutation will be deprecated. We should use OrderLineDiscountDelete
+        description = "Remove discount applied to the order line."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+
+class OrderShippingDiscountAdd(OrderDiscountCommon):
+    order = graphene.Field(Order, description="Order which has discounted shipping.")
+
+    class Arguments:
+        order_id = graphene.ID(
+            description="ID of a order to discount shipping.", required=True
+        )
+        input = DiscountCommonInput(
+            required=True,
+            description="Fields required to update price for the shipping.",
+        )
+
+    class Meta:
+        description = "Add discounts for the shipping."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+
+
+class OrderShippingDiscountUpdate(OrderDiscountCommon):
+    order = graphene.Field(Order, description="Order which has discounted shipping.")
+
+    class Arguments:
+        discount_id = graphene.ID(
+            description="ID of a discount to update.", required=True
+        )
+        input = DiscountCommonInput(
+            required=True,
+            description="Fields required to update price for the shipping.",
+        )
+
+    class Meta:
+        description = "Updates discounts for the shipping."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+
+
+class OrderShippingDiscountDelete(OrderDiscountCommon):
+    order = graphene.Field(
+        Order, description="Order which has removed discount for shipping."
+    )
+
+    class Arguments:
+        discount_id = graphene.ID(
+            description="ID of a discount to remove.", required=True
+        )
+
+    class Meta:
+        description = "Remove discounts for the shipping."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
