@@ -34,8 +34,10 @@ class CheckoutAddPromoCode(BaseMutation):
             required=False,
         )
         token = UUID(description="Checkout token.", required=False)
-        promo_code = graphene.String(
-            description="Gift card code or voucher code.", required=True
+        promo_code = graphene.String(description="Gift card code or voucher code.")
+        promo_codes = graphene.List(
+            graphene.String,
+            description="Gift card codes or voucher codes.",
         )
 
     class Meta:
