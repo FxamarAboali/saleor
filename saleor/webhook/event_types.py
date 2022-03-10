@@ -207,6 +207,7 @@ class WebhookEventSyncType:
     ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
 
     CHECKOUT_EXTERNAL_DISCOUNTS = "checkout_external_discounts"
+    CHECKOUT_FILTER_DISCOUNTS = "checkout_filter_discounts"
 
     DISPLAY_LABELS = {
         PAYMENT_AUTHORIZE: "Authorize payment",
@@ -220,6 +221,7 @@ class WebhookEventSyncType:
         ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
         CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
         CHECKOUT_EXTERNAL_DISCOUNTS: "Checkout external discounts",
+        CHECKOUT_FILTER_DISCOUNTS: "Checkout filter discounts",
     }
 
     CHOICES = [
@@ -240,6 +242,7 @@ class WebhookEventSyncType:
             DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
         ),
         (CHECKOUT_EXTERNAL_DISCOUNTS, DISPLAY_LABELS[CHECKOUT_EXTERNAL_DISCOUNTS]),
+        (CHECKOUT_FILTER_DISCOUNTS, DISPLAY_LABELS[CHECKOUT_FILTER_DISCOUNTS]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -254,6 +257,7 @@ class WebhookEventSyncType:
         PAYMENT_VOID,
     ]
 
+    # TODO: Add discounts permissions.
     PERMISSIONS = {
         PAYMENT_AUTHORIZE: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_CAPTURE: PaymentPermissions.HANDLE_PAYMENTS,
