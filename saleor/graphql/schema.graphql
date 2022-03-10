@@ -1117,7 +1117,7 @@ type CheckoutDeliveryMethodUpdate {
   errors: [CheckoutError!]!
 }
 
-type CheckoutDiscount implements Node & BaseObjectDiscount {
+type CheckoutDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -1126,6 +1126,8 @@ type CheckoutDiscount implements Node & BaseObjectDiscount {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
 }
 
 type CheckoutDiscountAdd {
@@ -1228,7 +1230,7 @@ type CheckoutLineDelete {
   errors: [CheckoutError!]!
 }
 
-type CheckoutLineDiscount implements Node & BaseObjectDiscount {
+type CheckoutLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -1237,6 +1239,8 @@ type CheckoutLineDiscount implements Node & BaseObjectDiscount {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
 }
 
 type CheckoutLineDiscountAdd {
@@ -1298,7 +1302,7 @@ type CheckoutShippingAddressUpdate {
   errors: [CheckoutError!]!
 }
 
-type CheckoutShippingDiscount implements Node & BaseObjectDiscount {
+type CheckoutShippingDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -1307,6 +1311,8 @@ type CheckoutShippingDiscount implements Node & BaseObjectDiscount {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
 }
 
 type CheckoutShippingDiscountAdd {
@@ -4426,7 +4432,7 @@ enum OrderDirection {
   DESC
 }
 
-type OrderDiscount implements Node & BaseObjectDiscount {
+type OrderDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -4435,6 +4441,8 @@ type OrderDiscount implements Node & BaseObjectDiscount {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   amount: Money!
 }
 
@@ -4702,7 +4710,7 @@ type OrderLineDelete {
   errors: [OrderError!]!
 }
 
-type OrderLineDiscount implements Node & BaseObjectDiscount {
+type OrderLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -4711,6 +4719,8 @@ type OrderLineDiscount implements Node & BaseObjectDiscount {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
 }
 
 type OrderLineDiscountAdd {
@@ -4839,7 +4849,7 @@ input OrderSettingsUpdateInput {
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
-type OrderShippingDiscount implements Node & BaseObjectDiscount {
+type OrderShippingDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -4848,6 +4858,8 @@ type OrderShippingDiscount implements Node & BaseObjectDiscount {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
 }
 
 type OrderShippingDiscountAdd {

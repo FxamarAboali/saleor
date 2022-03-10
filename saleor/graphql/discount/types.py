@@ -375,7 +375,7 @@ class OrderDiscount(ModelObjectType):
         description = (
             "Contains all details related to the applied discount to the order."
         )
-        interfaces = [relay.Node, BaseObjectDiscount]
+        interfaces = [relay.Node, BaseObjectDiscount, ObjectWithMetadata]
         model = models.OrderDiscount
 
     @staticmethod
@@ -389,7 +389,7 @@ class OrderLineDiscount(ModelObjectType):
         description = (
             "Contains all details related to the applied discount to the order line."
         )
-        interfaces = [relay.Node, BaseObjectDiscount]
+        interfaces = [relay.Node, BaseObjectDiscount, ObjectWithMetadata]
         # TODO: Change to real model, in final PR.
         model = models.OrderDiscount
         # model = models.OrderLineDiscount
@@ -401,7 +401,7 @@ class OrderShippingDiscount(ModelObjectType):
             "Contains all details related to the applied discount to "
             "the order shipping."
         )
-        interfaces = [relay.Node, BaseObjectDiscount]
+        interfaces = [relay.Node, BaseObjectDiscount, ObjectWithMetadata]
         # TODO: Change to real model, in final PR.
         model = models.OrderDiscount
         # model = models.OrderShippingDiscount
@@ -412,7 +412,7 @@ class CheckoutDiscount(ModelObjectType):
         description = (
             "Contains all details related to the applied discount to the checkout."
         )
-        interfaces = [relay.Node, BaseObjectDiscount]
+        interfaces = [relay.Node, BaseObjectDiscount, ObjectWithMetadata]
         # TODO: Change to real model, in final PR.
         model = models.OrderDiscount
         # model = models.CheckoutDiscount
@@ -423,7 +423,7 @@ class CheckoutLineDiscount(ModelObjectType):
         description = (
             "Contains all details related to the applied discount to the checkout line."
         )
-        interfaces = [relay.Node, BaseObjectDiscount]
+        interfaces = [relay.Node, BaseObjectDiscount, ObjectWithMetadata]
         # TODO: Change to real model, in final PR.
         model = models.OrderDiscount
         # model = models.CheckoutLineDiscount
@@ -435,7 +435,7 @@ class CheckoutShippingDiscount(ModelObjectType):
             "Contains all details related to the applied discount to "
             "the checkout shipping."
         )
-        interfaces = [relay.Node, BaseObjectDiscount]
+        interfaces = [relay.Node, BaseObjectDiscount, ObjectWithMetadata]
         # TODO: Change to real model, in final PR.
         model = models.OrderDiscount
         # model = models.CheckoutShippingDiscount
