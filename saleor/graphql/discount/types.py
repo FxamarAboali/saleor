@@ -33,12 +33,7 @@ from .dataloaders import (
     VoucherChannelListingByVoucherIdAndChanneSlugLoader,
     VoucherChannelListingByVoucherIdLoader,
 )
-from .enums import (
-    DiscountValueTypeEnum,
-    OrderDiscountTypeEnum,
-    SaleType,
-    VoucherTypeEnum,
-)
+from .enums import DiscountTypeEnum, DiscountValueTypeEnum, SaleType, VoucherTypeEnum
 
 
 class SaleChannelListing(ModelObjectType):
@@ -346,7 +341,7 @@ class VoucherCountableConnection(CountableConnection):
 
 class BaseObjectDiscount(graphene.Interface):
     id = graphene.GlobalID(required=True)
-    type = OrderDiscountTypeEnum(required=True)
+    type = DiscountTypeEnum(required=True)
     name = graphene.String()
     translated_name = graphene.String()
     value_type = graphene.Field(
@@ -358,6 +353,9 @@ class BaseObjectDiscount(graphene.Interface):
         required=True,
         description="Value of the discount. Can store fixed value or percent value",
     )
+    amount = graphene.Field(
+        Money, description="Returns amount of discount.", required=True
+    )
     reason = graphene.String(
         required=False, description="Explanation for the applied discount."
     )
@@ -368,10 +366,6 @@ class BaseObjectDiscount(graphene.Interface):
 
 
 class OrderDiscount(ModelObjectType):
-    amount = graphene.Field(
-        Money, description="Returns amount of discount.", required=True
-    )
-
     class Meta:
         description = (
             "Contains all details related to the applied discount to the order."

@@ -28,6 +28,8 @@ from .mutations import (
     CheckoutLinesAdd,
     CheckoutLinesDelete,
     CheckoutLinesUpdate,
+    CheckoutPromoCodeAdd,
+    CheckoutPromoCodeRemove,
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
     CheckoutShippingDiscountAdd,
@@ -122,3 +124,6 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_shipping_discount_add = CheckoutShippingDiscountAdd.Field()
     checkout_shipping_discount_update = CheckoutShippingDiscountUpdate.Field()
     checkout_shipping_discount_delete = CheckoutShippingDiscountDelete.Field()
+
+    checkout_promo_code_add = CheckoutPromoCodeAdd.Field()
+    checkout_promo_code_remove = CheckoutPromoCodeRemove.Field()

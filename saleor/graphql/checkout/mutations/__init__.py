@@ -17,6 +17,8 @@ from .checkout_line_discount_update import CheckoutLineDiscountUpdate
 from .checkout_lines_add import CheckoutLinesAdd
 from .checkout_lines_delete import CheckoutLinesDelete
 from .checkout_lines_update import CheckoutLinesUpdate
+from .checkout_promo_code_add import CheckoutPromoCodeAdd
+from .checkout_promo_code_remove import CheckoutPromoCodeRemove
 from .checkout_remove_promo_code import CheckoutRemovePromoCode
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate
 from .checkout_shipping_discount_add import CheckoutShippingDiscountAdd
@@ -44,6 +46,8 @@ __all__ = [
     "CheckoutLinesAdd",
     "CheckoutLinesDelete",
     "CheckoutLinesUpdate",
+    "CheckoutPromoCodeAdd",
+    "CheckoutPromoCodeRemove",
     "CheckoutRemovePromoCode",
     "CheckoutShippingAddressUpdate",
     "CheckoutShippingDiscountAdd",

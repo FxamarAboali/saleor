@@ -1,9 +1,10 @@
 import graphene
 
-from ...discount import DiscountValueType, OrderDiscountType, VoucherType
+from ...discount import DiscountType, DiscountValueType, OrderDiscountType, VoucherType
 from ..core.enums import to_enum
 
 OrderDiscountTypeEnum = to_enum(OrderDiscountType, type_name="OrderDiscountType")
+DiscountTypeEnum = to_enum(DiscountType, type_name="DiscountType")
 
 
 class SaleType(graphene.Enum):

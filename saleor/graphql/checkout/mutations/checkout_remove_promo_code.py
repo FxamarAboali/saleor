@@ -39,18 +39,8 @@ class CheckoutRemovePromoCode(BaseMutation):
         promo_code = graphene.String(
             description="Gift card code or voucher code.", required=False
         )
-        promo_codes = graphene.List(
-            graphene.String,
-            description="Gift card codes or voucher codes.",
-            required=False,
-        )
         promo_code_id = graphene.ID(
             description="Gift card or voucher ID.",
-            required=False,
-        )
-        promo_code_ids = graphene.List(
-            graphene.ID,
-            description="Gift card or voucher ID's.",
             required=False,
         )
 

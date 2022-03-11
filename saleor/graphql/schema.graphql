@@ -780,11 +780,12 @@ input AttributeValueUpdateInput {
 
 interface BaseObjectDiscount {
   id: ID!
-  type: OrderDiscountType!
+  type: DiscountType!
   name: String
   translatedName: String
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
+  amount: Money!
   reason: String
   active: Boolean!
   code: String
@@ -1122,11 +1123,12 @@ type CheckoutDeliveryMethodUpdate {
 
 type CheckoutDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
-  type: OrderDiscountType!
+  type: DiscountType!
   name: String
   translatedName: String
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
+  amount: Money!
   reason: String
   active: Boolean!
   code: String
@@ -1236,11 +1238,12 @@ type CheckoutLineDelete {
 
 type CheckoutLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
-  type: OrderDiscountType!
+  type: DiscountType!
   name: String
   translatedName: String
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
+  amount: Money!
   reason: String
   active: Boolean!
   code: String
@@ -1295,6 +1298,16 @@ type CheckoutPaymentCreate {
   errors: [PaymentError!]!
 }
 
+type CheckoutPromoCodeAdd {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+type CheckoutPromoCodeRemove {
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
 type CheckoutRemovePromoCode {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -1309,11 +1322,12 @@ type CheckoutShippingAddressUpdate {
 
 type CheckoutShippingDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
-  type: OrderDiscountType!
+  type: DiscountType!
   name: String
   translatedName: String
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
+  amount: Money!
   reason: String
   active: Boolean!
   code: String
@@ -2079,6 +2093,11 @@ enum DiscountStatusEnum {
   ACTIVE
   EXPIRED
   SCHEDULED
+}
+
+enum DiscountType {
+  VOUCHER
+  MANUAL
 }
 
 enum DiscountValueTypeEnum {
@@ -4209,7 +4228,7 @@ type Mutation {
   exportProducts(input: ExportProductsInput!): ExportProducts
   exportGiftCards(input: ExportGiftCardsInput!): ExportGiftCards
   fileUpload(file: Upload!): FileUpload
-  checkoutAddPromoCode(checkoutId: ID, promoCode: String, promoCodes: [String], token: UUID): CheckoutAddPromoCode
+  checkoutAddPromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
@@ -4220,21 +4239,23 @@ type Mutation {
   checkoutLinesDelete(linesIds: [ID]!, token: UUID!): CheckoutLinesDelete
   checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
-  checkoutRemovePromoCode(checkoutId: ID, promoCode: String, promoCodeId: ID, promoCodeIds: [ID], promoCodes: [String], token: UUID): CheckoutRemovePromoCode
+  checkoutRemovePromoCode(checkoutId: ID, promoCode: String, promoCodeId: ID, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
   checkoutDeliveryMethodUpdate(deliveryMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
-  checkoutDiscountAdd(input: DiscountCommonInput!, token: UUID!): CheckoutDiscountAdd
+  checkoutDiscountAdd(checkoutId: ID!, input: DiscountCommonInput!): CheckoutDiscountAdd
   checkoutDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): CheckoutDiscountUpdate
   checkoutDiscountDelete(discountId: ID!): CheckoutDiscountDelete
   checkoutLineDiscountAdd(checkoutLineId: ID!, input: DiscountCommonInput!): CheckoutLineDiscountAdd
   checkoutLineDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): CheckoutLineDiscountUpdate
   checkoutLineDiscountDelete(discountId: ID!): CheckoutLineDiscountDelete
-  checkoutShippingDiscountAdd(input: DiscountCommonInput!, token: UUID!): CheckoutShippingDiscountAdd
+  checkoutShippingDiscountAdd(checkoutId: ID!, input: DiscountCommonInput!): CheckoutShippingDiscountAdd
   checkoutShippingDiscountUpdate(discountId: ID!, input: DiscountCommonInput!): CheckoutShippingDiscountUpdate
   checkoutShippingDiscountDelete(discountId: ID!): CheckoutShippingDiscountDelete
+  checkoutPromoCodeAdd(checkoutId: ID!, promoCodes: [String]): CheckoutPromoCodeAdd
+  checkoutPromoCodeRemove(checkoutId: ID!, promoCodeIds: [ID], promoCodes: [String]): CheckoutPromoCodeRemove
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
@@ -4444,17 +4465,17 @@ enum OrderDirection {
 
 type OrderDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
-  type: OrderDiscountType!
+  type: DiscountType!
   name: String
   translatedName: String
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
+  amount: Money!
   reason: String
   active: Boolean!
   code: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  amount: Money!
 }
 
 type OrderDiscountAdd {
@@ -4467,11 +4488,6 @@ type OrderDiscountDelete {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
-}
-
-enum OrderDiscountType {
-  VOUCHER
-  MANUAL
 }
 
 type OrderDiscountUpdate {
@@ -4723,11 +4739,12 @@ type OrderLineDelete {
 
 type OrderLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
-  type: OrderDiscountType!
+  type: DiscountType!
   name: String
   translatedName: String
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
+  amount: Money!
   reason: String
   active: Boolean!
   code: String
@@ -4863,11 +4880,12 @@ input OrderSettingsUpdateInput {
 
 type OrderShippingDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   id: ID!
-  type: OrderDiscountType!
+  type: DiscountType!
   name: String
   translatedName: String
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
+  amount: Money!
   reason: String
   active: Boolean!
   code: String

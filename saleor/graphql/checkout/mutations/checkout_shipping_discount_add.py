@@ -2,7 +2,6 @@ import graphene
 
 from ....core.permissions import CheckoutPermissions
 from ...core.mutations import BaseMutation
-from ...core.scalars import UUID
 from ...core.types.common import CheckoutError
 
 # TODO: Move this DiscountCommonInput to discount model
@@ -16,7 +15,7 @@ class CheckoutShippingDiscountAdd(BaseMutation):
     )
 
     class Arguments:
-        token = UUID(description="Checkout token.", required=True)
+        checkout_id = graphene.ID(required=True, description="The ID of the checkout.")
         input = DiscountCommonInput(
             required=True,
             description="Fields required to create a discount for the checkout.",

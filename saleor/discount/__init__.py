@@ -24,6 +24,12 @@ class OrderDiscountType:
     CHOICES = [(VOUCHER, "Voucher"), (MANUAL, "Manual")]
 
 
+class DiscountType:
+    VOUCHER = "voucher"
+    MANUAL = "manual"
+    CHOICES = [(VOUCHER, "Voucher"), (MANUAL, "Manual")]
+
+
 class VoucherType:
     SHIPPING = "shipping"
     ENTIRE_ORDER = "entire_order"
