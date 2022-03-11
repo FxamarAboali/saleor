@@ -364,6 +364,7 @@ class BaseObjectDiscount(graphene.Interface):
     active = graphene.Boolean(
         required=True, description="Determines if a discount active."
     )
+    code = graphene.String(required=False, description="Code of applied discount.")
 
 
 class OrderDiscount(ModelObjectType):

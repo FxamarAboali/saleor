@@ -787,6 +787,7 @@ interface BaseObjectDiscount {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  code: String
 }
 
 input BulkAttributeValueInput {
@@ -1031,9 +1032,11 @@ type Checkout implements Node & ObjectWithMetadata {
   discount: Money
   discountName: String
   discounts: [CheckoutDiscount!]
+  discountsRecalculateAfter: DateTime!
   shippingDiscounts: [CheckoutShippingDiscount!]
   translatedDiscountName: String
-  voucherCode: String
+  voucherCode: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `promo_codes` instead.")
+  promoCodes: [String!]
   availableShippingMethods: [ShippingMethod]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
   shippingMethods: [ShippingMethod]!
   availableCollectionPoints: [Warehouse!]!
@@ -1126,6 +1129,7 @@ type CheckoutDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata 
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  code: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
 }
@@ -1239,6 +1243,7 @@ type CheckoutLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetad
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  code: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
 }
@@ -1311,6 +1316,7 @@ type CheckoutShippingDiscount implements Node & BaseObjectDiscount & ObjectWithM
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  code: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
 }
@@ -4441,6 +4447,7 @@ type OrderDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata {
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  code: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   amount: Money!
@@ -4719,6 +4726,7 @@ type OrderLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  code: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
 }
@@ -4858,6 +4866,7 @@ type OrderShippingDiscount implements Node & BaseObjectDiscount & ObjectWithMeta
   value: PositiveDecimal!
   reason: String
   active: Boolean!
+  code: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
 }

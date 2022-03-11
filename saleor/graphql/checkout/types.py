@@ -204,13 +204,17 @@ class Checkout(ModelObjectType):
         description="List of all discounts assigned to the checkout.",
         required=False,
     )
+    discounts_recalculate_after = graphene.DateTime(required=True)
     shipping_discounts = graphene.List(
         graphene.NonNull("saleor.graphql.discount.types.CheckoutShippingDiscount"),
         description="List of all shipping discounts assigned to the checkout.",
         required=False,
     )
     translated_discount_name = graphene.String()
-    voucher_code = graphene.String()
+    voucher_code = graphene.String(
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `promo_codes` instead."),
+    )
+    promo_codes = graphene.List(graphene.NonNull(graphene.String))
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
