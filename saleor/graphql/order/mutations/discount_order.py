@@ -40,6 +40,10 @@ class DiscountCommonInput(graphene.InputObjectType):
     reason = graphene.String(
         required=False, description="Explanation for the applied discount."
     )
+    code = graphene.String(required=False)
+    name = graphene.String(required=False)
+    translated_name = graphene.String(required=False)
+    active = graphene.Boolean(required=False)
 
 
 class OrderDiscountCommon(BaseMutation):

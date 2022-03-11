@@ -2050,6 +2050,10 @@ input DiscountCommonInput {
   valueType: DiscountValueTypeEnum!
   value: PositiveDecimal!
   reason: String
+  code: String
+  name: String
+  translatedName: String
+  active: Boolean
 }
 
 type DiscountError {
