@@ -1,10 +1,12 @@
 import ast
 import logging
+import os
 import os.path
 import warnings
 from datetime import timedelta
 
 import dj_database_url
+import dj_db_conn_pool
 import dj_email_url
 import django_cache_url
 import jaeger_client.config
@@ -80,15 +82,19 @@ DATABASE_CONNECTION_REPLICA_NAME = "default"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=0
+        default="postgres://saleor:saleor@localhost:5432/saleor",
+        conn_max_age=0,
+        engine="dj_db_conn_pool.backends.postgresql",
     ),
-    # TODO: We need to add read only user to saleor platfrom, and we need to update
+    # TODO: We need to add read only user to saleor platform, and we need to update
     # docs.
     # DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
     #     default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
     #     conn_max_age=0,
     # ),
 }
+
+dj_db_conn_pool.setup(pool_size=10, max_overflow=10)
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
