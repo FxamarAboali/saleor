@@ -117,7 +117,7 @@ class TransactionEvent(models.Model):
         choices=TransactionEventStatus.CHOICES,
         default=TransactionEventStatus.SUCCESS,
     )
-    psp_reference = models.CharField(max_length=512, blank=True, null=True, unique=True)
+    psp_reference = models.CharField(max_length=512, blank=True, null=True)
     name = models.CharField(max_length=512, blank=True, default="")
 
     transaction = models.ForeignKey(
@@ -140,6 +140,12 @@ class TransactionEvent(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["psp_reference", "status"],
+                name="TRANSACTION_EVENT_UNQ_PSP_REF_STATUS",
+            )
+        ]
 
 
 class Payment(ModelWithMetadata):

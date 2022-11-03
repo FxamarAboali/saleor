@@ -39,6 +39,7 @@ from ..enums import (
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
     TransactionRequestActionErrorCode,
+    TransactionRequestCompleteErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
@@ -356,6 +357,13 @@ class TransactionUpdateError(Error):
 class TransactionRequestActionError(Error):
     code = TransactionRequestActionErrorCode(
         description="The error code.", required=True
+    )
+
+
+class TransactionRequestCompleteError(Error):
+    code = TransactionRequestCompleteErrorCode(
+        description="The error code.",
+        required=True,
     )
 
 

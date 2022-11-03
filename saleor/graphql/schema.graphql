@@ -12540,6 +12540,47 @@ type Mutation {
   ): TransactionRequestAction
 
   """
+  Report event related to transaction. 
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS.
+  """
+  transactionEventReport(
+    """Transaction request amount."""
+    amount: PositiveDecimal!
+
+    """
+    List of available actions for transaction. If `null` then available actions will be calculated
+    """
+    availableActions: [TransactionActionEnum!]
+
+    """
+    The url that will allow to redirect user to payment provider page with transaction details.
+    """
+    externalUrl: String
+
+    """Name of the transaction"""
+    name: String
+
+    """The original psp reference of transaction."""
+    originalPspReference: String
+
+    """The psp reference of completed transaction."""
+    pspReference: String!
+
+    """Determines result of transaction event."""
+    result: TransactionEventReportResult!
+
+    """Time of the transaction"""
+    time: DateTime
+
+    """The ID of the transaction."""
+    transactionId: ID
+
+    """Determines the action type"""
+    type: TransactionEventActionTypeEnum!
+  ): TransactionEventReport
+
+  """
   Creates a new page. 
   
   Requires one of the following permissions: MANAGE_PAGES.
@@ -18011,6 +18052,50 @@ enum TransactionRequestActionErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+}
+
+"""
+Report event related to transaction. 
+
+Requires one of the following permissions: HANDLE_PAYMENTS.
+"""
+type TransactionEventReport {
+  transaction: TransactionItem
+  alreadyProcessed: Boolean
+  errors: [TransactionRequestCompleteError!]!
+}
+
+type TransactionRequestCompleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionRequestCompleteErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionRequestCompleteErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INCORRECT_DETAILS
+}
+
+"""
+Represents a status of transaction result.
+
+    The following statuses are possible:
+    SUCCESS - Represents a sucess success.
+    FAILURE - Represents a failure result.
+"""
+enum TransactionEventReportResult {
+  SUCCESS
+  FAILURE
 }
 
 """

@@ -27,12 +27,21 @@ from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event
 from ...order.models import Order
-from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
+from ...payment import (
+    PaymentError,
+    StorePaymentMethod,
+    TransactionAction,
+    TransactionEventActionType,
+    TransactionEventReportResult,
+    TransactionEventStatus,
+    gateway,
+)
 from ...payment import models as payment_models
 from ...payment.error_codes import (
     PaymentErrorCode,
     TransactionCreateErrorCode,
     TransactionRequestActionErrorCode,
+    TransactionRequestCompleteErrorCode,
     TransactionUpdateErrorCode,
 )
 from ...payment.gateway import (
@@ -66,6 +75,7 @@ from .enums import (
     StorePaymentMethodEnum,
     TransactionActionEnum,
     TransactionEventActionTypeEnum,
+    TransactionEventReportResultEnum,
     TransactionEventStatusEnum,
 )
 from .types import Payment, PaymentInitialized, TransactionItem
@@ -1125,6 +1135,373 @@ class TransactionUpdate(TransactionCreate):
                     name=transaction_event_data.get("name", ""),
                 )
         return TransactionUpdate(transaction=instance)
+
+
+class TransactionEventReport(BaseMutation):
+    transaction = graphene.Field(TransactionItem)
+    already_processed = graphene.Boolean()
+
+    class Arguments:
+        transaction_id = graphene.ID(
+            description="The ID of the transaction.",
+        )
+        original_psp_reference = graphene.String(
+            description="The original psp reference of transaction."
+        )
+        psp_reference = graphene.String(
+            description="The psp reference of completed transaction.",
+            required=True,
+        )
+        result = graphene.Argument(
+            TransactionEventReportResultEnum,
+            description="Determines result of transaction event.",
+            required=True,
+        )
+        type = graphene.Argument(
+            TransactionEventActionTypeEnum,
+            description="Determines the action type",
+            required=True,
+        )
+        amount = PositiveDecimal(
+            description="Transaction request amount.",
+            required=True,
+        )
+        time = graphene.DateTime(description="Time of the transaction")
+        external_url = graphene.String(
+            description=(
+                "The url that will allow to redirect user to "
+                "payment provider page with transaction details."
+            )
+        )
+        name = graphene.String(
+            description="Name of the transaction",
+        )
+        available_actions = common_types.NonNullList(
+            TransactionActionEnum,
+            description="List of available actions for transaction. "
+            "If `null` then available actions will be calculated",
+        )
+
+    class Meta:
+        description = "Report event related to transaction."
+        error_type_class = common_types.TransactionRequestCompleteError
+        permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+
+    @classmethod
+    def available_actions(
+        cls,
+        transaction: payment_models.TransactionItem,
+        available_actions: Optional[list[str]],
+    ):
+        if available_actions is None:
+            available_actions = [TransactionAction.CANCEL]
+            if transaction.charged_value > 0:
+                available_actions.append(TransactionAction.REFUND)
+            if transaction.authorized_value > 0:
+                available_actions.append(TransactionAction.CHARGE)
+        return available_actions
+
+    @classmethod
+    def validate_url(cls, external_url):
+        if external_url is None:
+            return
+        validator = URLValidator()
+        try:
+            validator(external_url)
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "external_url": ValidationError(
+                        "Invalid format of `externalUrl`.",
+                        code=TransactionRequestCompleteErrorCode.INVALID,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_action_type(cls, action_type, available_actions):
+        if action_type not in available_actions:
+            raise ValidationError(
+                {
+                    "type": ValidationError(
+                        "Invalid action type. Not defined in `available_actions`.",
+                        code=TransactionRequestCompleteErrorCode.INVALID,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_input(cls, input_data):
+        cls.validate_url(input_data.get("external_url"))
+        cls.validate_action_type(input_data["type"], input_data["available_actions"])
+
+    @classmethod
+    def update_transaction(cls, transaction, transaction_data):
+        transaction = cls.construct_instance(transaction, transaction_data)
+        transaction.save()
+
+    @classmethod
+    def _validate_constraint_event(cls, transaction, psp_reference, **kwargs):
+        return (
+            not transaction.events.filter(
+                psp_reference=psp_reference,
+            )
+            .exclude(status=TransactionEventStatus.REQUEST)
+            .exists()
+        )
+
+    @classmethod
+    def create_event(cls, event_data, result):
+        if not cls._validate_constraint_event(**event_data):
+            raise ValidationError(
+                {
+                    "psp_reference": ValidationError(
+                        "There is already existing transaction event "
+                        "for provided reference",
+                        code=TransactionRequestCompleteErrorCode.INVALID,
+                    )
+                }
+            )
+
+        event = payment_models.TransactionEvent(
+            status=TransactionEventStatus.SUCCESS
+            if result == TransactionEventReportResult.SUCCESS
+            else TransactionEventStatus.FAILURE,
+            **event_data,
+        )
+        event.save()
+
+    @classmethod
+    def check_can_update(cls, transaction, app):
+        if not transaction.user_id and not transaction.app_id:
+            return
+
+        if app and transaction.app_id == app.id:
+            return
+
+        raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
+
+    @classmethod
+    def check_if_already_processed_and_incorrect(cls, event_data, result):
+        transaction = event_data["transaction"]
+        events = transaction.events.filter(
+            status=TransactionEventStatus.SUCCESS,
+            **event_data,
+        ) | transaction.events.filter(
+            status=TransactionEventStatus.FAILURE,
+            **event_data,
+        )
+
+        already_processed = events.exists()
+        status_to_event = {event.status: event for event in events}
+        if result == TransactionEventReportResult.SUCCESS:
+            incorrect = TransactionEventStatus.SUCCESS not in status_to_event
+        if result == TransactionEventReportResult.FAILURE:
+            incorrect = TransactionEventStatus.FAILURE not in status_to_event
+
+        return already_processed, incorrect
+
+    @classmethod
+    def calculate_pending_refund_amount(
+        cls,
+        transaction: payment_models.TransactionItem,
+        event: Optional[payment_models.TransactionEvent],
+        type: TransactionEventActionType,
+        amount: Decimal,
+    ):
+        pending_amount = transaction.pending_refund_value
+        if type == TransactionEventActionType.REFUND:
+            if event and event.type == TransactionAction.REFUND:
+                pending_amount -= max(amount, event.amount_value)
+            else:
+                pending_amount -= amount
+        return pending_amount
+
+    @classmethod
+    def calculate_charged_amount(
+        cls,
+        transaction: payment_models.TransactionItem,
+        amount: Decimal,
+        type: TransactionEventActionType,
+    ):
+        charged_amount = transaction.charged_value
+        if type == TransactionEventActionType.REFUND:
+            charged_amount -= amount
+        if type == TransactionEventActionType.CHARGE:
+            charged_amount += amount
+        return charged_amount
+
+    @classmethod
+    def calculate_authorized_amount(
+        cls,
+        transaction: payment_models.TransactionItem,
+        amount: Decimal,
+        type: TransactionEventActionType,
+    ):
+        authorized_amount = transaction.authorized_value
+        if type == TransactionEventActionType.CHARGE:
+            authorized_amount -= amount
+        if type == TransactionEventActionType.CANCEL:
+            authorized_amount = Decimal(0)
+        return authorized_amount
+
+    @classmethod
+    def calculate_refunded_amount(
+        cls,
+        transaction: payment_models.TransactionItem,
+        amount: Decimal,
+        type: TransactionEventActionType,
+    ):
+        refunded_amount = transaction.refunded_value
+        if type == TransactionEventActionType.REFUND:
+            refunded_amount += amount
+        return refunded_amount
+
+    @classmethod
+    def calculate_voided_amount(
+        cls,
+        transaction: payment_models.TransactionItem,
+        amount: Decimal,
+        type: TransactionEventActionType,
+    ):
+        voided_amount = transaction.voided_value
+        if type == TransactionEventActionType.CANCEL:
+            voided_amount += amount
+        return amount
+
+    @classmethod
+    def calculate_transaction_amounts(cls, transaction, requested_event, amount, type):
+        transaction_data = {
+            "pending_refund_value": cls.calculate_pending_refund_amount(
+                transaction=transaction, event=requested_event, amount=amount, type=type
+            ),
+            "charged_value": cls.calculate_charged_amount(
+                transaction=transaction, amount=amount, type=type
+            ),
+            "authorized_value": cls.calculate_authorized_amount(
+                transaction=transaction, amount=amount, type=type
+            ),
+            "refunded_value": cls.calculate_refunded_amount(
+                transaction=transaction, amount=amount, type=type
+            ),
+            "voided_value": cls.calculate_voided_amount(
+                transaction=transaction, amount=amount, type=type
+            ),
+        }
+        return transaction_data
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        transaction_id = data.get("transaction_id")
+        original_psp_reference = data.get("original_psp_reference")
+
+        transaction = cls.find_transaction(
+            info,
+            transaction_id,
+            original_psp_reference,
+        )
+
+        app = load_app(info.context)
+        cls.check_can_update(transaction, app)
+        data["available_actions"] = cls.available_actions(
+            transaction=transaction,
+            available_actions=data.get("available_actions"),
+        )
+        cls.validate_input(data)
+
+        amount = data["amount"]
+        type = data["type"]
+
+        event_data = {
+            "transaction": transaction,
+            "name": data.get("name", ""),
+            "external_url": data.get("external_url"),
+            "psp_reference": data["psp_reference"],
+            "currency": transaction.currency,
+            "amount_value": amount,
+            "type": type,
+            "created_at": data.get("time"),
+        }
+
+        requested_event = cls.get_event(
+            event_data=event_data,
+            status=TransactionEventStatus.REQUEST,
+        )
+
+        result = data["result"]
+        (
+            already_processed,
+            incorrect_data,
+        ) = cls.check_if_already_processed_and_incorrect(
+            event_data=event_data, result=result
+        )
+        if not already_processed:
+            if result == TransactionEventReportResult.SUCCESS:
+                transaction_data = cls.calculate_transaction_amounts(
+                    transaction=transaction,
+                    requested_event=requested_event,
+                    amount=amount,
+                    type=type,
+                )
+                cls.update_transaction(transaction, transaction_data)
+            cls.create_event(
+                event_data=event_data,
+                result=result,
+            )
+        elif incorrect_data:
+            raise ValidationError(
+                "The transaction event with provided psp reference was already"
+                " proceesed with different details.",
+                code=TransactionRequestCompleteErrorCode.INCORRECT_DETAILS,
+            )
+
+        return TransactionEventReport(
+            transaction=transaction,
+            already_processed=already_processed,
+        )
+
+    @classmethod
+    def _get_transaction_by_psp_reference(cls, psp_reference):
+        try:
+            transaction = payment_models.TransactionItem.objects.get(
+                psp_reference=psp_reference
+            )
+        except payment_models.TransactionItem.DoesNotExist as e:
+            code = TransactionRequestCompleteErrorCode.NOT_FOUND
+            raise ValidationError(str(e), code=code)
+        return transaction
+
+    @classmethod
+    def find_transaction(cls, info, id, psp_reference):
+        if not id:
+            return cls._get_transaction_by_psp_reference(psp_reference)
+        try:
+            transaction = cls.get_node_or_error(
+                info,
+                id,
+                only_type=TransactionItem,
+            )
+        except ValidationError:
+            transaction = cls._get_transaction_by_psp_reference(psp_reference)
+        return transaction
+
+    @classmethod
+    def get_event(cls, event_data, status):
+        transaction = event_data["transaction"]
+        type = event_data["type"]
+        psp_reference = event_data["psp_reference"]
+        try:
+            event = transaction.events.get(
+                type=type,
+                status=status,
+                psp_reference=psp_reference,
+            )
+            return event
+        except (
+            payment_models.TransactionEvent.DoesNotExist,
+            payment_models.TransactionEvent.MultipleObjectsReturned,
+        ):
+            return None
 
 
 class TransactionRequestAction(BaseMutation):
