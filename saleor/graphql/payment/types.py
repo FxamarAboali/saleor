@@ -18,6 +18,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     ADDED_IN_38,
+    ADDED_IN_39,
     PREVIEW_FEATURE,
 )
 from ..core.fields import JSONString, PermissionsField
@@ -293,6 +294,9 @@ class TransactionEvent(ModelObjectType):
     type = graphene.Field(
         TransactionEventActionTypeEnum,
         description="The type of action related to this event." + ADDED_IN_38,
+    )
+    cause = graphene.String(
+        description="The cause of the status." + ADDED_IN_39,
     )
 
     class Meta:

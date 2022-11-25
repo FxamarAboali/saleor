@@ -738,6 +738,7 @@ def test_creates_transaction_event_for_order_by_app(
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    cause = "Test cause"
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -760,6 +761,7 @@ def test_creates_transaction_event_for_order_by_app(
             "externalUrl": external_url,
             "amount": authorized_value,
             "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
+            "cause": cause,
         },
     }
 
@@ -783,6 +785,7 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["amount"]["currency"] == transaction.currency
     assert event_data["amount"]["amount"] == authorized_value
     assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
+    assert event_data["cause"] == cause
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -814,6 +817,7 @@ def test_creates_transaction_event_for_checkout_by_app(
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    cause = "Test cause"
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -836,6 +840,7 @@ def test_creates_transaction_event_for_checkout_by_app(
             "externalUrl": external_url,
             "amount": authorized_value,
             "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
+            "cause": cause,
         },
     }
 
@@ -859,6 +864,7 @@ def test_creates_transaction_event_for_checkout_by_app(
     assert event_data["amount"]["currency"] == transaction.currency
     assert event_data["amount"]["amount"] == authorized_value
     assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
+    assert event_data["cause"] == cause
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -1802,6 +1808,8 @@ def test_creates_transaction_event_for_order_by_staff(
     event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
+    cause = "Test cause"
+
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
@@ -1822,6 +1830,7 @@ def test_creates_transaction_event_for_order_by_staff(
             "name": event_name,
             "amount": authorized_value,
             "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
+            "cause": cause
         },
     }
 
@@ -1844,6 +1853,7 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["amount"]["currency"] == transaction.currency
     assert event_data["amount"]["amount"] == authorized_value
     assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
+    assert event_data["cause"] == cause
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -1873,6 +1883,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
+    cause = "Test cause"
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -1894,6 +1905,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
             "name": event_name,
             "amount": authorized_value,
             "type": TransactionEventActionTypeEnum.AUTHORIZE.name,
+            "cause": cause
         },
     }
 
@@ -1916,6 +1928,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event_data["amount"]["currency"] == transaction.currency
     assert event_data["amount"]["amount"] == authorized_value
     assert event_data["type"] == TransactionEventActionTypeEnum.AUTHORIZE.name
+    assert event_data["cause"] == cause
 
     assert transaction.events.count() == 1
     event = transaction.events.first()

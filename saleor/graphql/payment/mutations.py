@@ -58,6 +58,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
     ADDED_IN_38,
+    ADDED_IN_39,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -730,6 +731,11 @@ class TransactionEventInput(graphene.InputObjectType):
             "payment provider page with transaction event details." + ADDED_IN_38
         )
     )
+    cause = graphene.String(
+        description=(
+            "The cause of event failure." + ADDED_IN_39,
+        )
+    )
 
 
 class TransactionCreate(BaseMutation):
@@ -928,6 +934,7 @@ class TransactionCreate(BaseMutation):
                 type=transaction_event_input.get("type"),
                 currency=transaction.currency,
                 amount_value=transaction_event_input.get("amount", 0),
+                cause=transaction_event_input.get("cause", ""),
             )
         except IntegrityError:
             raise ValidationError(
