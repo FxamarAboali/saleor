@@ -82,6 +82,13 @@ class ChannelUpdate(ModelMutation):
             cleaned_input["slug"] = slugify(slug)
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
+        if order_settings := cleaned_input.get("order_settings"):
+            cleaned_input["automatically_confirm_all_new_orders"] = order_settings[
+                "automatically_confirm_all_new_orders"
+            ]
+            cleaned_input[
+                "automatically_fulfill_non_shippable_gift_card"
+            ] = order_settings["automatically_fulfill_non_shippable_gift_card"]
 
         return cleaned_input
 

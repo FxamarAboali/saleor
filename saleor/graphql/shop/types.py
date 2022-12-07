@@ -56,15 +56,6 @@ class Domain(graphene.ObjectType):
         description = "Represents shop's domain."
 
 
-class OrderSettings(ModelObjectType):
-    automatically_confirm_all_new_orders = graphene.Boolean(required=True)
-    automatically_fulfill_non_shippable_gift_card = graphene.Boolean(required=True)
-
-    class Meta:
-        description = "Order related settings from site settings."
-        model = site_models.SiteSettings
-
-
 class GiftCardSettings(ModelObjectType):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="The gift card expiry type settings.", required=True

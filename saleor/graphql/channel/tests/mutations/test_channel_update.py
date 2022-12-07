@@ -32,6 +32,10 @@ CHANNEL_UPDATE_MUTATION = """
                 stockSettings {
                     allocationStrategy
                 }
+                orderSettings {
+                    automaticallyConfirmAllNewOrders
+                    automaticallyFulfillNonShippableGiftCard
+                }
             }
             errors{
                 field
@@ -61,6 +65,10 @@ def test_channel_update_mutation_as_staff_user(
             "slug": slug,
             "defaultCountry": default_country,
             "stockSettings": {"allocationStrategy": allocation_strategy},
+            "orderSettings": {
+                "automaticallyConfirmAllNewOrders": False,
+                "automaticallyFulfillNonShippableGiftCard": False,
+            },
         },
     }
 
@@ -86,6 +94,11 @@ def test_channel_update_mutation_as_staff_user(
         == default_country
     )
     assert channel_data["stockSettings"]["allocationStrategy"] == allocation_strategy
+    assert channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        is False
+    )
 
 
 def test_channel_update_mutation_as_app(

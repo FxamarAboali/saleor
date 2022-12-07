@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
+from ...channel import models as channel_models
 from ...core.error_codes import ShopErrorCode
 from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
@@ -10,6 +11,7 @@ from ...site.error_codes import GiftCardSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
+from ..channel.types import OrderSettings
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -21,7 +23,7 @@ from ..core.types import (
 )
 from ..site.dataloaders import get_site_promise
 from .enums import GiftCardSettingsExpiryTypeEnum
-from .types import GiftCardSettings, OrderSettings, Shop
+from .types import GiftCardSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -386,7 +388,10 @@ class OrderSettingsUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update shop order settings."
+        description = (
+            "Update shop order settings."
+            f"{DEPRECATED_IN_3X_INPUT} Use `channelUpdate` instead."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
         error_type_field = "order_settings_errors"
@@ -397,18 +402,23 @@ class OrderSettingsUpdate(BaseMutation):
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
         ]
-        site = get_site_promise(info.context).get()
-        instance = site.settings
-        update_fields = []
+        update_fields = {}
+        channels = channel_models.Channel.objects.all()
         for field in FIELDS:
             value = data["input"].get(field)
             if value is not None:
-                setattr(instance, field, value)
-                update_fields.append(field)
+                for channel in channels:
+                    setattr(channel, field, value)
+                update_fields[field] = value
 
         if update_fields:
-            instance.save(update_fields=update_fields)
-        return OrderSettingsUpdate(order_settings=instance)
+            channel_models.Channel.objects.bulk_update(
+                channels,
+                list(update_fields.keys()),
+            )
+        for field in FIELDS:
+            update_fields.setdefault(field, True)
+        return OrderSettingsUpdate(order_settings=OrderSettings(**update_fields))
 
 
 class GiftCardSettingsUpdateInput(graphene.InputObjectType):

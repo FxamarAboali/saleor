@@ -19,18 +19,28 @@ QUERY_CHANNEL = """
             stockSettings{
                 allocationStrategy
             }
+            orderSettings {
+                automaticallyConfirmAllNewOrders
+                automaticallyFulfillNonShippableGiftCard
+            }
         }
     }
 """
 
 
-def test_query_channel_as_staff_user(staff_api_client, channel_USD):
+def test_query_channel_as_staff_user(
+    permission_manage_channels, staff_api_client, channel_USD
+):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
-    response = staff_api_client.post_graphql(QUERY_CHANNEL, variables)
+    response = staff_api_client.post_graphql(
+        QUERY_CHANNEL,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
     content = get_graphql_content(response)
 
     # then
@@ -44,15 +54,31 @@ def test_query_channel_as_staff_user(staff_api_client, channel_USD):
         AllocationStrategyEnum[allocation_strategy].value
         == channel_USD.allocation_strategy
     )
+    assert (
+        channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"]
+        == channel_USD.automatically_confirm_all_new_orders
+    )
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        == channel_USD.automatically_fulfill_non_shippable_gift_card
+    )
 
 
-def test_query_channel_as_app(app_api_client, channel_USD):
+def test_query_channel_as_app(
+    permission_manage_channels,
+    app_api_client,
+    channel_USD,
+):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
-    response = app_api_client.post_graphql(QUERY_CHANNEL, variables)
+    response = app_api_client.post_graphql(
+        QUERY_CHANNEL,
+        variables=variables,
+        permissions=[permission_manage_channels],
+    )
     content = get_graphql_content(response)
 
     # then
@@ -65,6 +91,14 @@ def test_query_channel_as_app(app_api_client, channel_USD):
     assert (
         AllocationStrategyEnum[allocation_strategy].value
         == channel_USD.allocation_strategy
+    )
+    assert (
+        channel_data["orderSettings"]["automaticallyConfirmAllNewOrders"]
+        == channel_USD.automatically_confirm_all_new_orders
+    )
+    assert (
+        channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
+        == channel_USD.automatically_fulfill_non_shippable_gift_card
     )
 
 
