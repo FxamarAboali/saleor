@@ -10,7 +10,7 @@ from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_37,
-    ADDED_IN_39,
+    ADDED_IN_310,
     PREVIEW_FEATURE,
 )
 from ...core.mutations import ModelMutation
@@ -32,13 +32,13 @@ class StockSettingsInput(graphene.InputObjectType):
 
 class OrderSettingsInput(graphene.InputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
-        required=True,
+        required=False,
         description="When disabled, all new orders from checkout "
         "will be marked as unconfirmed. When enabled orders from checkout will "
         "become unfulfilled immediately.",
     )
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
-        required=True,
+        required=False,
         description="When enabled, all non-shippable gift card orders "
         "will be fulfilled automatically.",
     )
@@ -65,7 +65,7 @@ class ChannelInput(graphene.InputObjectType):
     )
     order_settings = graphene.Field(
         OrderSettingsInput,
-        description="The channel order settings" + ADDED_IN_39,
+        description="The channel order settings" + ADDED_IN_310,
         required=False,
     )
 

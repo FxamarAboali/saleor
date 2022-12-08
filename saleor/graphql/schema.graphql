@@ -21887,7 +21887,7 @@ input ChannelCreateInput {
   """
   The channel order settings
   
-  Added in Saleor 3.9.
+  Added in Saleor 3.10.
   """
   orderSettings: OrderSettingsInput
 
@@ -21921,12 +21921,12 @@ input OrderSettingsInput {
   """
   When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
   """
-  automaticallyConfirmAllNewOrders: Boolean!
+  automaticallyConfirmAllNewOrders: Boolean
 
   """
   When enabled, all non-shippable gift card orders will be fulfilled automatically.
   """
-  automaticallyFulfillNonShippableGiftCard: Boolean!
+  automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
 """
@@ -21968,7 +21968,7 @@ input ChannelUpdateInput {
   """
   The channel order settings
   
-  Added in Saleor 3.9.
+  Added in Saleor 3.10.
   """
   orderSettings: OrderSettingsInput
 
