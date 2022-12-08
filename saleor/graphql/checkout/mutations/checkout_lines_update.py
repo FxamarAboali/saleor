@@ -3,9 +3,9 @@ from typing import Dict, List
 import graphene
 from django.forms import ValidationError
 
+from ...app.dataloaders import get_app_promise
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
-from ...app.dataloaders import load_app
 from ...checkout.types import CheckoutLine
 from ...core.descriptions import (
     ADDED_IN_31,
@@ -131,7 +131,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         discounts,
         replace,
     ):
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         # if the requestor is not app, the quantity is required for all lines
         if not app:
             if any(

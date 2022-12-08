@@ -1434,7 +1434,6 @@ class Order(ModelObjectType):
     @traced_resolver
     def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
-
             def _validate_draft_order(manager):
                 country = get_order_country(root)
                 try:

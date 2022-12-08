@@ -1,13 +1,13 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...app.dataloaders import get_app_promise
 from ....core.permissions import OrderPermissions
 from ....order.actions import order_captured
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.gateway import request_charge_action
-from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
@@ -59,7 +59,7 @@ class OrderCapture(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
 
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         if payment_transactions := list(order.payment_transactions.all()):
             try:

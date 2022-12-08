@@ -1,9 +1,9 @@
 import graphene
 
+from ...app.dataloaders import get_app_promise
 from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
-from ...app.dataloaders import load_app
 from ...core.mutations import BaseBulkMutation
 from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -36,6 +36,6 @@ class OrderBulkCancel(BaseBulkMutation):
             cancel_order(
                 order=order,
                 user=info.context.user,
-                app=load_app(info.context),
+                app=get_app_promise(info.context).get(),
                 manager=manager,
             )
