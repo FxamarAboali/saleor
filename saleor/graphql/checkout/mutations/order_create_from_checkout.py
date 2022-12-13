@@ -82,7 +82,7 @@ class OrderCreateFromCheckout(BaseMutation):
         support_private_meta_field = True
 
     @classmethod
-    def check_permissions(cls, context, permissions=None):
+    def check_permissions(cls, context, permissions=None, **data):
         """Determine whether app has rights to perform this mutation."""
         permissions = permissions or cls._meta.permissions
         app = getattr(context, "app", None)
