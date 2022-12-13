@@ -43,6 +43,7 @@ from ..enums import (
     TranslationErrorCode,
     UploadErrorCode,
     WarehouseErrorCode,
+    WebhookDryRunErrorCode,
     WebhookErrorCode,
     WeightUnitsEnum,
 )
@@ -404,6 +405,10 @@ class WarehouseError(Error):
 
 class WebhookError(Error):
     code = WebhookErrorCode(description="The error code.", required=True)
+
+
+class WebhookDryRunError(Error):
+    code = WebhookDryRunErrorCode(description="The error code.", required=True)
 
 
 class TranslationError(Error):
