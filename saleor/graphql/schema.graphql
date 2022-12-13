@@ -234,12 +234,11 @@ type Query {
 
   """
   Order related settings from site settings.
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `channelUpdate` instead.
+   Returned `orderSettings` will be first `channel` in alphabetical order.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  orderSettings: OrderSettings
+  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `channel` field instead.")
 
   """
   Gift card related settings from site settings.
@@ -12147,9 +12146,11 @@ type Mutation {
   ): ShopAddressUpdate
 
   """
-  Update shop order settings.
+  Update shop order settings across all channels
+  Returned `orderSettings` will be for first `channel` in alphabetical order.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `channelUpdate` instead. 
+  DEPRECATED: this mutation will be removed in Saleor 4.0.
+  Use `channelUpdate` instead. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -16595,9 +16596,11 @@ type ShopAddressUpdate {
 }
 
 """
-Update shop order settings.
+Update shop order settings across all channels
+Returned `orderSettings` will be for first `channel` in alphabetical order.
 
-DEPRECATED: this field will be removed in Saleor 4.0. Use `channelUpdate` instead. 
+DEPRECATED: this mutation will be removed in Saleor 4.0.
+Use `channelUpdate` instead. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """

@@ -1368,10 +1368,22 @@ def test_order_settings_update_by_staff_nothing_changed(
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    QUERY = """
+        mutation {
+            orderSettingsUpdate(
+                input: {}
+            ) {
+                orderSettings {
+                    automaticallyConfirmAllNewOrders
+                    automaticallyFulfillNonShippableGiftCard
+                }
+            }
+        }
+    """
 
     # when
     response = staff_api_client.post_graphql(
-        ORDER_SETTINGS_UPDATE_MUTATION,
+        QUERY,
         {},
     )
     content = get_graphql_content(response)
@@ -1471,12 +1483,10 @@ def test_order_settings_query_multiple_channels(
     staff_api_client, permission_manage_orders, channel_USD, channel_PLN
 ):
     # given
-    channel_USD.name = "a"
     channel_USD.automatically_confirm_all_new_orders = False
     channel_USD.automatically_fulfill_non_shippable_gift_card = True
     channel_USD.save()
 
-    channel_PLN.name = "b"
     channel_PLN.automatically_confirm_all_new_orders = True
     channel_PLN.automatically_fulfill_non_shippable_gift_card = False
     channel_PLN.save()
@@ -1489,10 +1499,10 @@ def test_order_settings_query_multiple_channels(
     # then
     content = get_graphql_content(response)
 
-    assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+    assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is True
     assert (
         content["data"]["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
-        is True
+        is False
     )
 
 

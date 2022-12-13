@@ -3,7 +3,7 @@ import graphene
 from ...channel import models as channel_models
 from ...core.permissions import GiftcardPermissions, OrderPermissions
 from ..channel.types import OrderSettings
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT, DEPRECATED_IN_3X_MUTATION
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_MUTATION
 from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
@@ -31,7 +31,11 @@ class ShopQueries(graphene.ObjectType):
         OrderSettings,
         description=(
             "Order related settings from site settings."
-            f"{DEPRECATED_IN_3X_INPUT} Use `channelUpdate` instead."
+            "\n Returned `orderSettings` will be first `channel` in "
+            "alphabetical order."
+        ),
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} " "Use the `channel` field instead."
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
@@ -46,7 +50,7 @@ class ShopQueries(graphene.ObjectType):
         return Shop()
 
     def resolve_order_settings(self, _info):
-        channel = channel_models.Channel.objects.order_by("name").first()
+        channel = channel_models.Channel.objects.order_by("slug").first()
         return OrderSettings(
             automatically_confirm_all_new_orders=(
                 channel.automatically_confirm_all_new_orders

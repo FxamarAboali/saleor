@@ -12,7 +12,12 @@ from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
 from ..channel.types import OrderSettings
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_IN_3X_MUTATION,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import (
@@ -389,8 +394,10 @@ class OrderSettingsUpdate(BaseMutation):
 
     class Meta:
         description = (
-            "Update shop order settings."
-            f"{DEPRECATED_IN_3X_INPUT} Use `channelUpdate` instead."
+            "Update shop order settings across all channels"
+            "\nReturned `orderSettings` will be for first `channel` "
+            f"in alphabetical order.{DEPRECATED_IN_3X_MUTATION}"
+            "\nUse `channelUpdate` instead."
         )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
@@ -403,22 +410,22 @@ class OrderSettingsUpdate(BaseMutation):
             "automatically_fulfill_non_shippable_gift_card",
         ]
         update_fields = {}
-        channels = channel_models.Channel.objects.all()
         for field in FIELDS:
-            value = data["input"].get(field)
-            if value is not None:
-                for channel in channels:
-                    setattr(channel, field, value)
-                update_fields[field] = value
+            if field in data["input"]:
+                update_fields[field] = data["input"][field]
 
         if update_fields:
-            channel_models.Channel.objects.bulk_update(
-                channels,
-                list(update_fields.keys()),
-            )
-        for field in FIELDS:
-            update_fields.setdefault(field, True)
-        return OrderSettingsUpdate(order_settings=OrderSettings(**update_fields))
+            channel_models.Channel.objects.update(**update_fields)
+        channel = channel_models.Channel.objects.order_by("slug").first()
+        order_settings = OrderSettings(
+            automatically_confirm_all_new_orders=(
+                channel.automatically_confirm_all_new_orders
+            ),
+            automatically_fulfill_non_shippable_gift_card=(
+                channel.automatically_fulfill_non_shippable_gift_card
+            ),
+        )
+        return OrderSettingsUpdate(order_settings=order_settings)
 
 
 class GiftCardSettingsUpdateInput(graphene.InputObjectType):
