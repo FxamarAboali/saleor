@@ -31,11 +31,12 @@ class ShopQueries(graphene.ObjectType):
         OrderSettings,
         description=(
             "Order related settings from site settings."
-            "\n Returned `orderSettings` will be first `channel` in "
+            "\n Returns `orderSettings` for the first `channel` in "
             "alphabetical order."
         ),
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} " "Use the `channel` field instead."
+            f"{DEPRECATED_IN_3X_FIELD}"
+            "Use the `channel` query to fetch the `orderSettings` field instead."
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )

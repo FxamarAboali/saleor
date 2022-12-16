@@ -102,7 +102,7 @@ class ChannelUpdate(ModelMutation):
     def check_permissions(cls, context, permissions=None, **data):
         permissions = [ChannelPermissions.MANAGE_CHANNELS]
 
-        # when updating only orderSettings allow MENAGE_ORDERS permission
+        # when updating only orderSettings allow MANAGE_ORDERS permission
         input = data["data"]["input"]
         if "order_settings" in input and len(input) == 1:
             permissions.append(OrderPermissions.MANAGE_ORDERS)

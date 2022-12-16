@@ -234,11 +234,11 @@ type Query {
 
   """
   Order related settings from site settings.
-   Returned `orderSettings` will be first `channel` in alphabetical order.
+   Returns `orderSettings` for the first `channel` in alphabetical order.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `channel` field instead.")
+  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0.Use the `channel` query to fetch the `orderSettings` field instead.")
 
   """
   Gift card related settings from site settings.
@@ -4286,7 +4286,7 @@ type Channel implements Node {
   """
   Channel order settings.
   
-  Added in Saleor 3.9.
+  Added in Saleor 3.10.
   
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
@@ -4707,7 +4707,7 @@ enum AllocationStrategyEnum {
   PRIORITIZE_HIGH_STOCK
 }
 
-"""Order related settings from site settings."""
+"""Represents the channel order settings."""
 type OrderSettings {
   automaticallyConfirmAllNewOrders: Boolean!
   automaticallyFulfillNonShippableGiftCard: Boolean!
@@ -12147,10 +12147,10 @@ type Mutation {
 
   """
   Update shop order settings across all channels
-  Returned `orderSettings` will be for first `channel` in alphabetical order.
+  Returns `orderSettings` for the first `channel` in alphabetical order.
   
   DEPRECATED: this mutation will be removed in Saleor 4.0.
-  Use `channelUpdate` instead. 
+  Use `channelUpdate` mutation instead. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -16597,10 +16597,10 @@ type ShopAddressUpdate {
 
 """
 Update shop order settings across all channels
-Returned `orderSettings` will be for first `channel` in alphabetical order.
+Returns `orderSettings` for the first `channel` in alphabetical order.
 
 DEPRECATED: this mutation will be removed in Saleor 4.0.
-Use `channelUpdate` instead. 
+Use `channelUpdate` mutation instead. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -16631,12 +16631,12 @@ enum OrderSettingsErrorCode {
 
 input OrderSettingsUpdateInput {
   """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
   """
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
@@ -21923,12 +21923,12 @@ input StockSettingsInput {
 
 input OrderSettingsInput {
   """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
   """
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }

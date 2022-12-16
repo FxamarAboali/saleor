@@ -20,7 +20,7 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_36,
     ADDED_IN_37,
-    ADDED_IN_39,
+    ADDED_IN_310,
     PREVIEW_FEATURE,
 )
 from ..core.fields import PermissionsField
@@ -154,7 +154,7 @@ class OrderSettings(ObjectType):
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(required=True)
 
     class Meta:
-        description = "Order related settings from site settings."
+        description = "Represents the channel order settings."
 
 
 class Channel(ModelObjectType):
@@ -250,7 +250,7 @@ class Channel(ModelObjectType):
     )
     order_settings = PermissionsField(
         OrderSettings,
-        description="Channel order settings." + ADDED_IN_39,
+        description="Channel order settings." + ADDED_IN_310,
         required=True,
         permissions=[
             ChannelPermissions.MANAGE_CHANNELS,

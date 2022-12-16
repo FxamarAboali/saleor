@@ -375,12 +375,12 @@ class OrderSettingsUpdateInput(graphene.InputObjectType):
         required=False,
         description="When disabled, all new orders from checkout "
         "will be marked as unconfirmed. When enabled orders from checkout will "
-        "become unfulfilled immediately.",
+        "become unfulfilled immediately. By default set to True",
     )
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
         required=False,
         description="When enabled, all non-shippable gift card orders "
-        "will be fulfilled automatically.",
+        "will be fulfilled automatically. By defualt set to True",
     )
 
 
@@ -395,9 +395,9 @@ class OrderSettingsUpdate(BaseMutation):
     class Meta:
         description = (
             "Update shop order settings across all channels"
-            "\nReturned `orderSettings` will be for first `channel` "
+            "\nReturns `orderSettings` for the first `channel` "
             f"in alphabetical order.{DEPRECATED_IN_3X_MUTATION}"
-            "\nUse `channelUpdate` instead."
+            "\nUse `channelUpdate` mutation instead."
         )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError

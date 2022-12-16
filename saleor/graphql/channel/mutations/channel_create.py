@@ -35,12 +35,12 @@ class OrderSettingsInput(graphene.InputObjectType):
         required=False,
         description="When disabled, all new orders from checkout "
         "will be marked as unconfirmed. When enabled orders from checkout will "
-        "become unfulfilled immediately.",
+        "become unfulfilled immediately. By default set to True",
     )
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
         required=False,
         description="When enabled, all non-shippable gift card orders "
-        "will be fulfilled automatically.",
+        "will be fulfilled automatically. By defualt set to True",
     )
 
 
