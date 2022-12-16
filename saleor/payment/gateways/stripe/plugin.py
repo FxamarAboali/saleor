@@ -137,8 +137,7 @@ class StripeGatewayPlugin(BasePlugin):
 
     @property
     def order_auto_confirmation(self):
-        site_settings = Site.objects.get_current().settings
-        return site_settings.automatically_confirm_all_new_orders
+        return self.channel.automatically_confirm_all_new_orders
 
     def _get_transaction_details_for_stripe_status(
         self, status: str

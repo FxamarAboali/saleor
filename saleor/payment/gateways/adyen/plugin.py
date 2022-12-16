@@ -5,7 +5,6 @@ from urllib.parse import urlencode, urljoin
 import opentracing
 import opentracing.tags
 from django.contrib.auth.hashers import make_password
-from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
@@ -373,8 +372,7 @@ class AdyenGatewayPlugin(BasePlugin):
 
     @property
     def order_auto_confirmation(self):
-        site_settings = Site.objects.get_current().settings
-        return site_settings.automatically_confirm_all_new_orders
+        return self.channel.automatically_confirm_all_new_orders
 
     @require_active_plugin
     def process_payment(
