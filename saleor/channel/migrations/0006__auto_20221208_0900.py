@@ -15,9 +15,25 @@ class Migration(migrations.Migration):
             name="automatically_confirm_all_new_orders",
             field=models.BooleanField(default=True),
         ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE channel_channel
+            ALTER COLUMN automatically_confirm_all_new_orders
+            SET DEFAULT true;
+            """,
+            migrations.RunSQL.noop,
+        ),
         migrations.AddField(
             model_name="channel",
             name="automatically_fulfill_non_shippable_gift_card",
             field=models.BooleanField(default=True),
+        ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE channel_channel
+            ALTER COLUMN automatically_fulfill_non_shippable_gift_card
+            SET DEFAULT true;
+            """,
+            migrations.RunSQL.noop,
         ),
     ]
