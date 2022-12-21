@@ -104,7 +104,7 @@ class TaxConfigurationUpdate(ModelMutation):
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
+    def clean_input(cls, info: graphene.ResolveInfo, instance, data, input_cls=None):
         update_countries_configuration = data.get("update_countries_configuration", [])
         update_country_codes = [
             item["country_code"] for item in update_countries_configuration
@@ -171,7 +171,7 @@ class TaxConfigurationUpdate(ModelMutation):
         ).delete()
 
     @classmethod
-    def save(cls, _info, instance, cleaned_input):
+    def save(cls, _info: graphene.ResolveInfo, instance, cleaned_input):
         instance.save()
         update_countries_configuration = cleaned_input.get(
             "update_countries_configuration", []

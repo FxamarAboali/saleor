@@ -22,7 +22,7 @@ class AppTokenVerify(BaseMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
+    def perform_mutation(cls, _root, _info: graphene.ResolveInfo, **data):
         token = data.get("token")
         tokens = models.AppToken.objects.filter(
             app__is_active=True, token_last_4=token[-4:]

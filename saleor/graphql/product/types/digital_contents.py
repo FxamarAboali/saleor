@@ -23,7 +23,7 @@ class DigitalContentUrl(ModelObjectType):
         interfaces = (relay.Node,)
 
     @staticmethod
-    def resolve_created(root: models.DigitalContentUrl, _info):
+    def resolve_created(root: models.DigitalContentUrl, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
@@ -53,11 +53,13 @@ class DigitalContent(ModelObjectType):
         interfaces = (relay.Node, ObjectWithMetadata)
 
     @staticmethod
-    def resolve_urls(root: models.DigitalContent, _info):
+    def resolve_urls(root: models.DigitalContent, _info: graphene.ResolveInfo):
         return root.urls.all()
 
     @staticmethod
-    def resolve_product_variant(root: models.DigitalContent, info):
+    def resolve_product_variant(
+        root: models.DigitalContent, info: graphene.ResolveInfo
+    ):
         return (
             ProductVariantByIdLoader(info.context)
             .load(root.product_variant_id)

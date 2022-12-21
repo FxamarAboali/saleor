@@ -99,24 +99,24 @@ class DiscountQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_sale(_root, _info, *, id, channel=None):
+    def resolve_sale(_root, _info: graphene.ResolveInfo, *, id, channel=None):
         _, id = from_global_id_or_error(id, Sale)
         return resolve_sale(id, channel)
 
     @staticmethod
-    def resolve_sales(_root, info, *, channel=None, **kwargs):
+    def resolve_sales(_root, info: graphene.ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_sales(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
     @staticmethod
-    def resolve_voucher(_root, _info, *, id, channel=None):
+    def resolve_voucher(_root, _info: graphene.ResolveInfo, *, id, channel=None):
         _, id = from_global_id_or_error(id, Voucher)
         return resolve_voucher(id, channel)
 
     @staticmethod
-    def resolve_vouchers(_root, info, *, channel=None, **kwargs):
+    def resolve_vouchers(_root, info: graphene.ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_vouchers(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)

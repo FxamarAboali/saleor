@@ -41,7 +41,7 @@ class OrderAddNote(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(cls, _info, _instance, data):
+    def clean_input(cls, _info: graphene.ResolveInfo, _instance, data):
         try:
             cleaned_input = validate_required_string_field(data["input"], "message")
         except ValidationError:
@@ -56,7 +56,7 @@ class OrderAddNote(BaseMutation):
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         app = get_app_promise(info.context).get()

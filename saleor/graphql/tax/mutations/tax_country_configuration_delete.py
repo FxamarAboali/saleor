@@ -41,7 +41,7 @@ class TaxCountryConfigurationDelete(BaseMutation):
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
+    def perform_mutation(cls, _root, _info: graphene.ResolveInfo, **data):
         country_code = data["country_code"]
         rates = models.TaxClassCountryRate.objects.filter(country=country_code)
         rates.delete()

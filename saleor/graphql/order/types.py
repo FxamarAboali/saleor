@@ -280,7 +280,7 @@ class OrderEvent(ModelObjectType):
         interfaces = [relay.Node]
 
     @staticmethod
-    def resolve_user(root: models.OrderEvent, info):
+    def resolve_user(root: models.OrderEvent, info: graphene.ResolveInfo):
         def _resolve_user(event_user):
             requester = get_user_or_app_from_context(info.context)
             if (
@@ -297,7 +297,7 @@ class OrderEvent(ModelObjectType):
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
-    def resolve_app(root: models.OrderEvent, info):
+    def resolve_app(root: models.OrderEvent, info: graphene.ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor,
@@ -308,45 +308,45 @@ class OrderEvent(ModelObjectType):
         return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
-    def resolve_email(root: models.OrderEvent, _info):
+    def resolve_email(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("email", None)
 
     @staticmethod
-    def resolve_email_type(root: models.OrderEvent, _info):
+    def resolve_email_type(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("email_type", None)
 
     @staticmethod
-    def resolve_amount(root: models.OrderEvent, _info):
+    def resolve_amount(root: models.OrderEvent, _info: graphene.ResolveInfo):
         amount = root.parameters.get("amount", None)
         return float(amount) if amount else None
 
     @staticmethod
-    def resolve_payment_id(root: models.OrderEvent, _info):
+    def resolve_payment_id(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("payment_id", None)
 
     @staticmethod
-    def resolve_payment_gateway(root: models.OrderEvent, _info):
+    def resolve_payment_gateway(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("payment_gateway", None)
 
     @staticmethod
-    def resolve_quantity(root: models.OrderEvent, _info):
+    def resolve_quantity(root: models.OrderEvent, _info: graphene.ResolveInfo):
         quantity = root.parameters.get("quantity", None)
         return int(quantity) if quantity else None
 
     @staticmethod
-    def resolve_message(root: models.OrderEvent, _info):
+    def resolve_message(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("message", None)
 
     @staticmethod
-    def resolve_composed_id(root: models.OrderEvent, _info):
+    def resolve_composed_id(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("composed_id", None)
 
     @staticmethod
-    def resolve_oversold_items(root: models.OrderEvent, _info):
+    def resolve_oversold_items(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("oversold_items", None)
 
     @staticmethod
-    def resolve_order_number(root: models.OrderEvent, info):
+    def resolve_order_number(root: models.OrderEvent, info: graphene.ResolveInfo):
         def _resolve_order_number(order: models.Order):
             return order.number
 
@@ -357,12 +357,12 @@ class OrderEvent(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_invoice_number(root: models.OrderEvent, _info):
+    def resolve_invoice_number(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("invoice_number")
 
     @staticmethod
     @traced_resolver
-    def resolve_lines(root: models.OrderEvent, info):
+    def resolve_lines(root: models.OrderEvent, info: graphene.ResolveInfo):
         raw_lines = root.parameters.get("lines", None)
 
         if not raw_lines:
@@ -399,7 +399,7 @@ class OrderEvent(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_fulfilled_items(root: models.OrderEvent, info):
+    def resolve_fulfilled_items(root: models.OrderEvent, info: graphene.ResolveInfo):
         fulfillment_lines_ids = root.parameters.get("fulfilled_items", [])
 
         if not fulfillment_lines_ids:
@@ -408,39 +408,43 @@ class OrderEvent(ModelObjectType):
         return FulfillmentLinesByIdLoader(info.context).load_many(fulfillment_lines_ids)
 
     @staticmethod
-    def resolve_warehouse(root: models.OrderEvent, info):
+    def resolve_warehouse(root: models.OrderEvent, info: graphene.ResolveInfo):
         if warehouse_pk := root.parameters.get("warehouse"):
             return WarehouseByIdLoader(info.context).load(UUID(warehouse_pk))
         return None
 
     @staticmethod
-    def resolve_transaction_reference(root: models.OrderEvent, _info):
+    def resolve_transaction_reference(
+        root: models.OrderEvent, _info: graphene.ResolveInfo
+    ):
         return root.parameters.get("transaction_reference")
 
     @staticmethod
-    def resolve_shipping_costs_included(root: models.OrderEvent, _info):
+    def resolve_shipping_costs_included(
+        root: models.OrderEvent, _info: graphene.ResolveInfo
+    ):
         return root.parameters.get("shipping_costs_included")
 
     @staticmethod
-    def resolve_related_order(root: models.OrderEvent, info):
+    def resolve_related_order(root: models.OrderEvent, info: graphene.ResolveInfo):
         order_pk = root.parameters.get("related_order_pk")
         if not order_pk:
             return None
         return OrderByIdLoader(info.context).load(UUID(order_pk))
 
     @staticmethod
-    def resolve_discount(root: models.OrderEvent, info):
+    def resolve_discount(root: models.OrderEvent, info: graphene.ResolveInfo):
         discount_obj = root.parameters.get("discount")
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
 
     @staticmethod
-    def resolve_status(root: models.OrderEvent, _info):
+    def resolve_status(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("status")
 
     @staticmethod
-    def resolve_reference(root: models.OrderEvent, _info):
+    def resolve_reference(root: models.OrderEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("reference")
 
 
@@ -460,7 +464,7 @@ class FulfillmentLine(ModelObjectType):
         model = models.FulfillmentLine
 
     @staticmethod
-    def resolve_order_line(root: models.FulfillmentLine, info):
+    def resolve_order_line(root: models.FulfillmentLine, info: graphene.ResolveInfo):
         return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
@@ -486,19 +490,19 @@ class Fulfillment(ModelObjectType):
         model = models.Fulfillment
 
     @staticmethod
-    def resolve_created(root: models.Fulfillment, _info):
+    def resolve_created(root: models.Fulfillment, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_lines(root: models.Fulfillment, info):
+    def resolve_lines(root: models.Fulfillment, info: graphene.ResolveInfo):
         return FulfillmentLinesByFulfillmentIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_status_display(root: models.Fulfillment, _info):
+    def resolve_status_display(root: models.Fulfillment, _info: graphene.ResolveInfo):
         return root.get_status_display()
 
     @staticmethod
-    def resolve_warehouse(root: models.Fulfillment, info):
+    def resolve_warehouse(root: models.Fulfillment, info: graphene.ResolveInfo):
         def _resolve_stock_warehouse(stock: Stock):
             return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
@@ -631,7 +635,9 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=256, format=None):
+    def resolve_thumbnail(
+        root: models.OrderLine, info: graphene.ResolveInfo, *, size=256, format=None
+    ):
         if not root.variant_id:
             return None
 
@@ -687,7 +693,7 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_unit_price(root: models.OrderLine, info):
+    def resolve_unit_price(root: models.OrderLine, info: graphene.ResolveInfo):
         def _resolve_unit_price(data):
             order, lines, manager = data
             return calculations.order_line_unit(
@@ -700,13 +706,15 @@ class OrderLine(ModelObjectType):
         return Promise.all([order, lines, manager]).then(_resolve_unit_price)
 
     @staticmethod
-    def resolve_quantity_to_fulfill(root: models.OrderLine, info):
+    def resolve_quantity_to_fulfill(root: models.OrderLine, info: graphene.ResolveInfo):
         return root.quantity_unfulfilled
 
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_undiscounted_unit_price(root: models.OrderLine, info):
+    def resolve_undiscounted_unit_price(
+        root: models.OrderLine, info: graphene.ResolveInfo
+    ):
         def _resolve_undiscounted_unit_price(data):
             order, lines, manager = data
             return calculations.order_line_unit(
@@ -721,20 +729,22 @@ class OrderLine(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_unit_discount_type(root: models.OrderLine, _info):
+    def resolve_unit_discount_type(root: models.OrderLine, _info: graphene.ResolveInfo):
         return root.unit_discount_type
 
     @staticmethod
-    def resolve_unit_discount_value(root: models.OrderLine, _info):
+    def resolve_unit_discount_value(
+        root: models.OrderLine, _info: graphene.ResolveInfo
+    ):
         return root.unit_discount_value
 
     @staticmethod
-    def resolve_unit_discount(root: models.OrderLine, _info):
+    def resolve_unit_discount(root: models.OrderLine, _info: graphene.ResolveInfo):
         return root.unit_discount
 
     @staticmethod
     @traced_resolver
-    def resolve_tax_rate(root: models.OrderLine, info):
+    def resolve_tax_rate(root: models.OrderLine, info: graphene.ResolveInfo):
         def _resolve_tax_rate(data):
             order, lines, manager = data
             return calculations.order_line_tax_rate(
@@ -749,7 +759,7 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_total_price(root: models.OrderLine, info):
+    def resolve_total_price(root: models.OrderLine, info: graphene.ResolveInfo):
         def _resolve_total_price(data):
             order, lines, manager = data
             return calculations.order_line_total(
@@ -764,7 +774,9 @@ class OrderLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_undiscounted_total_price(root: models.OrderLine, info):
+    def resolve_undiscounted_total_price(
+        root: models.OrderLine, info: graphene.ResolveInfo
+    ):
         def _resolve_undiscounted_total_price(data):
             order, lines, manager = data
             return calculations.order_line_total(
@@ -779,16 +791,20 @@ class OrderLine(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_translated_product_name(root: models.OrderLine, _info):
+    def resolve_translated_product_name(
+        root: models.OrderLine, _info: graphene.ResolveInfo
+    ):
         return root.translated_product_name
 
     @staticmethod
-    def resolve_translated_variant_name(root: models.OrderLine, _info):
+    def resolve_translated_variant_name(
+        root: models.OrderLine, _info: graphene.ResolveInfo
+    ):
         return root.translated_variant_name
 
     @staticmethod
     @traced_resolver
-    def resolve_variant(root: models.OrderLine, info):
+    def resolve_variant(root: models.OrderLine, info: graphene.ResolveInfo):
         context = info.context
         if not root.variant_id:
             return None
@@ -820,11 +836,11 @@ class OrderLine(ModelObjectType):
         return Promise.all([variant, channel]).then(requestor_has_access_to_variant)
 
     @staticmethod
-    def resolve_allocations(root: models.OrderLine, info):
+    def resolve_allocations(root: models.OrderLine, info: graphene.ResolveInfo):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_tax_class(root: models.OrderLine, info):
+    def resolve_tax_class(root: models.OrderLine, info: graphene.ResolveInfo):
         return (
             TaxClassByIdLoader(info.context).load(root.tax_class_id)
             if root.tax_class_id
@@ -832,11 +848,13 @@ class OrderLine(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_tax_class_metadata(root: models.OrderLine, _info):
+    def resolve_tax_class_metadata(root: models.OrderLine, _info: graphene.ResolveInfo):
         return resolve_metadata(root.tax_class_metadata)
 
     @staticmethod
-    def resolve_tax_class_private_metadata(root: models.OrderLine, info):
+    def resolve_tax_class_private_metadata(
+        root: models.OrderLine, info: graphene.ResolveInfo
+    ):
         check_private_metadata_privilege(root, info)
         return resolve_metadata(root.tax_class_private_metadata)
 
@@ -1143,20 +1161,20 @@ class Order(ModelObjectType):
         model = models.Order
 
     @staticmethod
-    def resolve_created(root: models.Order, _info):
+    def resolve_created(root: models.Order, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_token(root: models.Order, info):
+    def resolve_token(root: models.Order, info: graphene.ResolveInfo):
         return root.id
 
     @staticmethod
-    def resolve_discounts(root: models.Order, info):
+    def resolve_discounts(root: models.Order, info: graphene.ResolveInfo):
         return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
-    def resolve_discount(root: models.Order, info):
+    def resolve_discount(root: models.Order, info: graphene.ResolveInfo):
         def return_voucher_discount(discounts) -> Optional[Money]:
             if not discounts:
                 return None
@@ -1173,7 +1191,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_discount_name(root: models.Order, info):
+    def resolve_discount_name(root: models.Order, info: graphene.ResolveInfo):
         def return_voucher_name(discounts) -> Optional[Money]:
             if not discounts:
                 return None
@@ -1190,7 +1208,9 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_translated_discount_name(root: models.Order, info):
+    def resolve_translated_discount_name(
+        root: models.Order, info: graphene.ResolveInfo
+    ):
         def return_voucher_translated_name(discounts) -> Optional[Money]:
             if not discounts:
                 return None
@@ -1207,7 +1227,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_billing_address(root: models.Order, info):
+    def resolve_billing_address(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_billing_address(data):
             if isinstance(data, Address):
                 user = None
@@ -1237,7 +1257,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_shipping_address(root: models.Order, info):
+    def resolve_shipping_address(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_shipping_address(data):
             if isinstance(data, Address):
                 user = None
@@ -1267,7 +1287,7 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_shipping_price(root: models.Order, info):
+    def resolve_shipping_price(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_shipping_price(data):
             lines, manager = data
             return calculations.order_shipping(root, manager, lines)
@@ -1279,7 +1299,7 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_shipping_tax_rate(root: models.Order, info):
+    def resolve_shipping_tax_rate(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_shipping_tax_rate(data):
             lines, manager = data
             return calculations.order_shipping_tax_rate(
@@ -1291,7 +1311,7 @@ class Order(ModelObjectType):
         return Promise.all([lines, manager]).then(_resolve_shipping_tax_rate)
 
     @staticmethod
-    def resolve_actions(root: models.Order, info):
+    def resolve_actions(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_actions(payments):
             actions = []
             payment = get_last_payment(payments)
@@ -1311,7 +1331,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_subtotal(root: models.Order, info):
+    def resolve_subtotal(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_subtotal(data):
             order_lines, manager = data
             return calculations.order_subtotal(root, manager, order_lines)
@@ -1325,7 +1345,7 @@ class Order(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     @plugin_manager_promise_callback
-    def resolve_total(root: models.Order, info, manager):
+    def resolve_total(root: models.Order, info: graphene.ResolveInfo, manager):
         def _resolve_total(lines):
             return calculations.order_total(root, manager, lines)
 
@@ -1336,7 +1356,7 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_undiscounted_total(root: models.Order, info):
+    def resolve_undiscounted_total(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_undiscounted_total(lines):
             return calculations.order_undiscounted_total(root, manager, lines)
 
@@ -1345,7 +1365,7 @@ class Order(ModelObjectType):
         return Promise.all([lines, manager]).then(_resolve_undiscounted_total)
 
     @staticmethod
-    def resolve_total_authorized(root: models.Order, info):
+    def resolve_total_authorized(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_total_get_total_authorized(data):
             transactions, payments = data
             if transactions:
@@ -1362,7 +1382,7 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_total_captured(root: models.Order, info):
+    def resolve_total_captured(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_total_captured(transactions):
             if transactions:
                 charged_money = prices.Money(Decimal(0), root.currency)
@@ -1378,7 +1398,7 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_total_balance(root: models.Order, info):
+    def resolve_total_balance(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_total_balance(transactions):
             if transactions:
                 charged_money = prices.Money(Decimal(0), root.currency)
@@ -1394,7 +1414,7 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_fulfillments(root: models.Order, info):
+    def resolve_fulfillments(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_fulfillments(fulfillments):
             user = info.context.user
             if user and user.is_staff:
@@ -1411,15 +1431,15 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_lines(root: models.Order, info):
+    def resolve_lines(root: models.Order, info: graphene.ResolveInfo):
         return OrderLinesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_events(root: models.Order, _info):
+    def resolve_events(root: models.Order, _info: graphene.ResolveInfo):
         return OrderEventsByOrderIdLoader(_info.context).load(root.id)
 
     @staticmethod
-    def resolve_is_paid(root: models.Order, info):
+    def resolve_is_paid(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_is_paid(transactions):
             if transactions:
                 charged_money = prices.Money(Decimal(0), root.currency)
@@ -1435,12 +1455,12 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_number(root: models.Order, _info):
+    def resolve_number(root: models.Order, _info: graphene.ResolveInfo):
         return str(root.number)
 
     @staticmethod
     @traced_resolver
-    def resolve_payment_status(root: models.Order, info):
+    def resolve_payment_status(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_payment_status(data):
             transactions, payments, fulfillments = data
 
@@ -1474,7 +1494,7 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_authorize_status(root: models.Order, info):
+    def resolve_authorize_status(root: models.Order, info: graphene.ResolveInfo):
         total_covered = quantize_price(
             root.total_authorized_amount + root.total_charged_amount, root.currency
         )
@@ -1486,7 +1506,7 @@ class Order(ModelObjectType):
         return OrderAuthorizeStatusEnum.PARTIAL
 
     @staticmethod
-    def resolve_charge_status(root: models.Order, info):
+    def resolve_charge_status(root: models.Order, info: graphene.ResolveInfo):
         total_charged = quantize_price(root.total_charged_amount, root.currency)
         total_gross = quantize_price(root.total_gross_amount, root.currency)
         if total_charged <= 0:
@@ -1498,7 +1518,7 @@ class Order(ModelObjectType):
         return OrderChargeStatusEnum.OVERCHARGED
 
     @staticmethod
-    def resolve_payment_status_display(root: models.Order, info):
+    def resolve_payment_status_display(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_payment_status(data):
             transactions, payments = data
             if transactions:
@@ -1516,23 +1536,23 @@ class Order(ModelObjectType):
         return Promise.all([transactions, payments]).then(_resolve_payment_status)
 
     @staticmethod
-    def resolve_payments(root: models.Order, info):
+    def resolve_payments(root: models.Order, info: graphene.ResolveInfo):
         return PaymentsByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     @one_of_permissions_required(
         [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
     )
-    def resolve_transactions(root: models.Order, info):
+    def resolve_transactions(root: models.Order, info: graphene.ResolveInfo):
         return TransactionItemsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_status_display(root: models.Order, _info):
+    def resolve_status_display(root: models.Order, _info: graphene.ResolveInfo):
         return root.get_status_display()
 
     @staticmethod
     @traced_resolver
-    def resolve_can_finalize(root: models.Order, info):
+    def resolve_can_finalize(root: models.Order, info: graphene.ResolveInfo):
         if root.status == OrderStatus.DRAFT:
 
             def _validate_draft_order(manager):
@@ -1547,7 +1567,7 @@ class Order(ModelObjectType):
         return True
 
     @staticmethod
-    def resolve_user_email(root: models.Order, info):
+    def resolve_user_email(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
             if root.use_old_id is False or is_owner_or_has_one_of_perms(
@@ -1566,7 +1586,7 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_user(root: models.Order, info):
+    def resolve_user(root: models.Order, info: graphene.ResolveInfo):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
             check_is_owner_or_has_one_of_perms(
@@ -1583,7 +1603,7 @@ class Order(ModelObjectType):
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
-    def resolve_shipping_method(root: models.Order, info):
+    def resolve_shipping_method(root: models.Order, info: graphene.ResolveInfo):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
@@ -1630,7 +1650,7 @@ class Order(ModelObjectType):
         )
 
     @classmethod
-    def resolve_delivery_method(cls, root: models.Order, info):
+    def resolve_delivery_method(cls, root: models.Order, info: graphene.ResolveInfo):
         if root.shipping_method_id or get_external_shipping_id(root):
             return cls.resolve_shipping_method(root, info)
         if root.collection_point_id:
@@ -1644,7 +1664,7 @@ class Order(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     # TODO: We should optimize it in/after PR#5819
-    def resolve_shipping_methods(cls, root: models.Order, info):
+    def resolve_shipping_methods(cls, root: models.Order, info: graphene.ResolveInfo):
         def with_channel(data):
             channel, manager = data
 
@@ -1668,21 +1688,25 @@ class Order(ModelObjectType):
     @traced_resolver
     @prevent_sync_event_circular_query
     # TODO: We should optimize it in/after PR#5819
-    def resolve_available_shipping_methods(cls, root: models.Order, info):
+    def resolve_available_shipping_methods(
+        cls, root: models.Order, info: graphene.ResolveInfo
+    ):
         return cls.resolve_shipping_methods(root, info).then(
             lambda methods: [method for method in methods if method.active]
         )
 
     @classmethod
     @traced_resolver
-    def resolve_available_collection_points(cls, root: models.Order, info):
+    def resolve_available_collection_points(
+        cls, root: models.Order, info: graphene.ResolveInfo
+    ):
         def get_available_collection_points(lines):
             return get_valid_collection_points_for_order(lines, root.channel_id)
 
         return cls.resolve_lines(root, info).then(get_available_collection_points)
 
     @staticmethod
-    def resolve_invoices(root: models.Order, info):
+    def resolve_invoices(root: models.Order, info: graphene.ResolveInfo):
         requester = get_user_or_app_from_context(info.context)
         if root.use_old_id is True:
             check_is_owner_or_has_one_of_perms(
@@ -1691,15 +1715,15 @@ class Order(ModelObjectType):
         return InvoicesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_is_shipping_required(root: models.Order, _info):
+    def resolve_is_shipping_required(root: models.Order, _info: graphene.ResolveInfo):
         return root.is_shipping_required()
 
     @staticmethod
-    def resolve_gift_cards(root: models.Order, info):
+    def resolve_gift_cards(root: models.Order, info: graphene.ResolveInfo):
         return GiftCardsByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_voucher(root: models.Order, info):
+    def resolve_voucher(root: models.Order, info: graphene.ResolveInfo):
         if not root.voucher_id:
             return None
 
@@ -1713,18 +1737,18 @@ class Order(ModelObjectType):
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 
     @staticmethod
-    def resolve_language_code_enum(root: models.Order, _info):
+    def resolve_language_code_enum(root: models.Order, _info: graphene.ResolveInfo):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def resolve_original(root: models.Order, _info):
+    def resolve_original(root: models.Order, _info: graphene.ResolveInfo):
         if not root.original_id:
             return None
         return graphene.Node.to_global_id("Order", root.original_id)
 
     @staticmethod
     @traced_resolver
-    def resolve_errors(root: models.Order, info):
+    def resolve_errors(root: models.Order, info: graphene.ResolveInfo):
         if root.status == OrderStatus.DRAFT:
 
             def _validate_order(manager):
@@ -1740,7 +1764,7 @@ class Order(ModelObjectType):
         return []
 
     @staticmethod
-    def resolve_display_gross_prices(root: models.Order, info):
+    def resolve_display_gross_prices(root: models.Order, info: graphene.ResolveInfo):
         tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
         country_code = get_order_country(root)
 
@@ -1767,7 +1791,7 @@ class Order(ModelObjectType):
         return tax_config.then(load_tax_country_exceptions)
 
     @classmethod
-    def resolve_shipping_tax_class(cls, root: models.Order, info):
+    def resolve_shipping_tax_class(cls, root: models.Order, info: graphene.ResolveInfo):
         if root.shipping_method_id:
             return cls.resolve_shipping_method(root, info).then(
                 lambda shipping_method_data: shipping_method_data.tax_class
@@ -1777,11 +1801,15 @@ class Order(ModelObjectType):
         return None
 
     @staticmethod
-    def resolve_shipping_tax_class_metadata(root: models.Order, _info):
+    def resolve_shipping_tax_class_metadata(
+        root: models.Order, _info: graphene.ResolveInfo
+    ):
         return resolve_metadata(root.shipping_tax_class_metadata)
 
     @staticmethod
-    def resolve_shipping_tax_class_private_metadata(root: models.Order, info):
+    def resolve_shipping_tax_class_private_metadata(
+        root: models.Order, info: graphene.ResolveInfo
+    ):
         check_private_metadata_privilege(root, info)
         return resolve_metadata(root.shipping_tax_class_private_metadata)
 

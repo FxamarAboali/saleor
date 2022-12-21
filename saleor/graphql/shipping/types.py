@@ -64,11 +64,15 @@ class ShippingMethodChannelListing(ModelObjectType):
         interfaces = [relay.Node]
 
     @staticmethod
-    def resolve_channel(root: models.ShippingMethodChannelListing, info):
+    def resolve_channel(
+        root: models.ShippingMethodChannelListing, info: graphene.ResolveInfo
+    ):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
-    def resolve_minimum_order_price(root: models.ShippingMethodChannelListing, info):
+    def resolve_minimum_order_price(
+        root: models.ShippingMethodChannelListing, info: graphene.ResolveInfo
+    ):
         if root.minimum_order_price_amount is None:
             return None
         else:
@@ -160,11 +164,13 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         model = models.ShippingMethod
 
     @staticmethod
-    def resolve_id(root: ChannelContext, _info):
+    def resolve_id(root: ChannelContext, _info: graphene.ResolveInfo):
         return graphene.Node.to_global_id("ShippingMethodType", root.node.id)
 
     @staticmethod
-    def resolve_maximum_order_price(root: ChannelContext[models.ShippingMethod], info):
+    def resolve_maximum_order_price(
+        root: ChannelContext[models.ShippingMethod], info: graphene.ResolveInfo
+    ):
         maximum_order_price = getattr(root.node, "maximum_order_price", None)
         if maximum_order_price is not None:
             return maximum_order_price
@@ -181,7 +187,9 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         )
 
     @staticmethod
-    def resolve_minimum_order_price(root: ChannelContext[models.ShippingMethod], info):
+    def resolve_minimum_order_price(
+        root: ChannelContext[models.ShippingMethod], info: graphene.ResolveInfo
+    ):
         minimum_order_price = getattr(root.node, "minimum_order_price", None)
         if minimum_order_price is not None:
             return minimum_order_price
@@ -199,22 +207,26 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_weight(
-        root: ChannelContext[models.ShippingMethod], _info
+        root: ChannelContext[models.ShippingMethod], _info: graphene.ResolveInfo
     ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
-    def resolve_postal_code_rules(root: ChannelContext[models.ShippingMethod], info):
+    def resolve_postal_code_rules(
+        root: ChannelContext[models.ShippingMethod], info: graphene.ResolveInfo
+    ):
         return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_minimum_order_weight(
-        root: ChannelContext[models.ShippingMethod], _info
+        root: ChannelContext[models.ShippingMethod], _info: graphene.ResolveInfo
     ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
     @staticmethod
-    def resolve_channel_listings(root: ChannelContext[models.ShippingMethod], info):
+    def resolve_channel_listings(
+        root: ChannelContext[models.ShippingMethod], info: graphene.ResolveInfo
+    ):
         return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
             root.node.id
         )
@@ -235,7 +247,9 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def resolve_tax_class(root: ChannelContext[models.ShippingMethod], info):
+    def resolve_tax_class(
+        root: ChannelContext[models.ShippingMethod], info: graphene.ResolveInfo
+    ):
         return (
             TaxClassByIdLoader(info.context).load(root.node.tax_class_id)
             if root.node.tax_class_id
@@ -286,18 +300,24 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_price_range(root: ChannelContext[models.ShippingZone], _info):
+    def resolve_price_range(
+        root: ChannelContext[models.ShippingZone], _info: graphene.ResolveInfo
+    ):
         return resolve_price_range(root.channel_slug)
 
     @staticmethod
-    def resolve_countries(root: ChannelContext[models.ShippingZone], _info):
+    def resolve_countries(
+        root: ChannelContext[models.ShippingZone], _info: graphene.ResolveInfo
+    ):
         return [
             CountryDisplay(code=country.code, country=country.name)
             for country in root.node.countries
         ]
 
     @staticmethod
-    def resolve_shipping_methods(root: ChannelContext[models.ShippingZone], info):
+    def resolve_shipping_methods(
+        root: ChannelContext[models.ShippingZone], info: graphene.ResolveInfo
+    ):
         def wrap_shipping_method_with_channel_context(shipping_methods):
             shipping_methods = [
                 ChannelContext(node=shipping, channel_slug=root.channel_slug)
@@ -320,11 +340,15 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_warehouses(root: ChannelContext[models.ShippingZone], _info):
+    def resolve_warehouses(
+        root: ChannelContext[models.ShippingZone], _info: graphene.ResolveInfo
+    ):
         return root.node.warehouses.all()
 
     @staticmethod
-    def resolve_channels(root: ChannelContext[models.ShippingZone], info):
+    def resolve_channels(
+        root: ChannelContext[models.ShippingZone], info: graphene.ResolveInfo
+    ):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
@@ -382,15 +406,19 @@ class ShippingMethod(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_id(root: ShippingMethodData, _info):
+    def resolve_id(root: ShippingMethodData, _info: graphene.ResolveInfo):
         return root.graphql_id
 
     @staticmethod
-    def resolve_maximum_order_weight(root: ShippingMethodData, _info):
+    def resolve_maximum_order_weight(
+        root: ShippingMethodData, _info: graphene.ResolveInfo
+    ):
         return convert_weight_to_default_weight_unit(root.maximum_order_weight)
 
     @staticmethod
-    def resolve_minimum_order_weight(root: ShippingMethodData, _info):
+    def resolve_minimum_order_weight(
+        root: ShippingMethodData, _info: graphene.ResolveInfo
+    ):
         return convert_weight_to_default_weight_unit(root.minimum_order_weight)
 
 

@@ -43,11 +43,13 @@ class ChannelContextTypeForObjectType(graphene.ObjectType):
         return resolver(attname, default_value, root.node, info, **args)
 
     @staticmethod
-    def resolve_id(root: ChannelContext, _info):
+    def resolve_id(root: ChannelContext, _info: graphene.ResolveInfo):
         return root.node.pk
 
     @staticmethod
-    def resolve_translation(root: ChannelContext, info, *, language_code):
+    def resolve_translation(
+        root: ChannelContext, info: graphene.ResolveInfo, *, language_code
+    ):
         # Resolver for TranslationField; needs to be manually specified.
         return resolve_translation(root.node, info, language_code=language_code)
 
@@ -59,7 +61,9 @@ class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
         abstract = True
 
     @classmethod
-    def is_type_of(cls, root: Union[ChannelContext, Model], _info):
+    def is_type_of(
+        cls, root: Union[ChannelContext, Model], _info: graphene.ResolveInfo
+    ):
         # Unwrap node from ChannelContext if it didn't happen already
         if isinstance(root, ChannelContext):
             root = cast(Model, root.node)
@@ -86,32 +90,40 @@ class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectTyp
         abstract = True
 
     @staticmethod
-    def resolve_metadata(root: ChannelContext, info):
+    def resolve_metadata(root: ChannelContext, info: graphene.ResolveInfo):
         # Used in metadata API to resolve metadata fields from an instance.
         return ObjectWithMetadata.resolve_metadata(root.node, info)
 
     @staticmethod
-    def resolve_metafield(root: ChannelContext, info, *, key: str):
+    def resolve_metafield(
+        root: ChannelContext, info: graphene.ResolveInfo, *, key: str
+    ):
         # Used in metadata API to resolve metadata fields from an instance.
         return ObjectWithMetadata.resolve_metafield(root.node, info, key=key)
 
     @staticmethod
-    def resolve_metafields(root: ChannelContext, info, *, keys=None):
+    def resolve_metafields(
+        root: ChannelContext, info: graphene.ResolveInfo, *, keys=None
+    ):
         # Used in metadata API to resolve metadata fields from an instance.
         return ObjectWithMetadata.resolve_metafields(root.node, info, keys=keys)
 
     @staticmethod
-    def resolve_private_metadata(root: ChannelContext, info):
+    def resolve_private_metadata(root: ChannelContext, info: graphene.ResolveInfo):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
 
     @staticmethod
-    def resolve_private_metafield(root: ChannelContext, info, *, key: str):
+    def resolve_private_metafield(
+        root: ChannelContext, info: graphene.ResolveInfo, *, key: str
+    ):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metafield(root.node, info, key=key)
 
     @staticmethod
-    def resolve_private_metafields(root: ChannelContext, info, *, keys=None):
+    def resolve_private_metafields(
+        root: ChannelContext, info: graphene.ResolveInfo, *, keys=None
+    ):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metafields(root.node, info, keys=keys)
 
@@ -242,7 +254,7 @@ class Channel(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_has_orders(root: models.Channel, info):
+    def resolve_has_orders(root: models.Channel, info: graphene.ResolveInfo):
         return (
             ChannelWithHasOrdersByIdLoader(info.context)
             .load(root.id)
@@ -250,17 +262,17 @@ class Channel(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_default_country(root: models.Channel, _info):
+    def resolve_default_country(root: models.Channel, _info: graphene.ResolveInfo):
         return CountryDisplay(
             code=root.default_country.code, country=root.default_country.name
         )
 
     @staticmethod
-    def resolve_warehouses(root: models.Channel, info):
+    def resolve_warehouses(root: models.Channel, info: graphene.ResolveInfo):
         return WarehousesByChannelIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_countries(root: models.Channel, info):
+    def resolve_countries(root: models.Channel, info: graphene.ResolveInfo):
         from ..shipping.dataloaders import ShippingZonesByChannelIdLoader
 
         def get_countries(shipping_zones):
@@ -363,5 +375,5 @@ class Channel(ModelObjectType):
         return shipping_zones_loader.then(get_shipping_methods)
 
     @staticmethod
-    def resolve_stock_settings(root: models.Channel, _info):
+    def resolve_stock_settings(root: models.Channel, _info: graphene.ResolveInfo):
         return StockSettings(allocation_strategy=root.allocation_strategy)

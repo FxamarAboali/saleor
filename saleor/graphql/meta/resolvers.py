@@ -1,6 +1,8 @@
 import dataclasses
 from operator import itemgetter
 
+import graphene
+
 from ...account import models as account_models
 from ...app import models as app_models
 from ...attribute import models as attribute_models
@@ -89,7 +91,9 @@ def resolve_metadata(metadata: dict):
     )
 
 
-def check_private_metadata_privilege(root: ModelWithMetadata, info):
+def check_private_metadata_privilege(
+    root: ModelWithMetadata, info: graphene.ResolveInfo
+):
     item_type, item_id = resolve_object_with_metadata_type(root)
     if not item_type:
         raise NotImplementedError(
@@ -113,6 +117,6 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
         raise PermissionDenied()
 
 
-def resolve_private_metadata(root: ModelWithMetadata, info):
+def resolve_private_metadata(root: ModelWithMetadata, info: graphene.ResolveInfo):
     check_private_metadata_privilege(root, info)
     return resolve_metadata(root.private_metadata)

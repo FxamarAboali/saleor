@@ -95,7 +95,7 @@ class FilterConnectionField(ConnectionField):
         wrapped_resolver = super().get_resolver(parent_resolver)
 
         @wraps(wrapped_resolver)
-        def new_resolver(obj, info, **kwargs):
+        def new_resolver(obj, info: graphene.ResolveInfo, **kwargs):
             kwargs[FILTERSET_CLASS] = self.filterset_class
             kwargs[FILTERS_NAME] = self.filter_field_name
             return wrapped_resolver(obj, info, **kwargs)

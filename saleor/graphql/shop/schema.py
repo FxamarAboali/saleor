@@ -37,15 +37,15 @@ class ShopQueries(graphene.ObjectType):
         permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
     )
 
-    def resolve_shop(self, _info):
+    def resolve_shop(self, _info: graphene.ResolveInfo):
         return Shop()
 
     @load_site_callback
-    def resolve_order_settings(self, _info, site):
+    def resolve_order_settings(self, _info: graphene.ResolveInfo, site):
         return site.settings
 
     @load_site_callback
-    def resolve_gift_card_settings(self, _info, site):
+    def resolve_gift_card_settings(self, _info: graphene.ResolveInfo, site):
         return site.settings
 
 

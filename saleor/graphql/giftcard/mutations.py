@@ -125,7 +125,7 @@ class GiftCardCreate(ModelMutation):
         error_type_field = "gift_card_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: graphene.ResolveInfo, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
         # perform only when gift card is created
@@ -163,7 +163,7 @@ class GiftCardCreate(ModelMutation):
         return cleaned_input
 
     @staticmethod
-    def set_created_by_user(cleaned_input, info):
+    def set_created_by_user(cleaned_input, info: graphene.ResolveInfo):
         user = info.context.user
         if user:
             cleaned_input["created_by"] = user
@@ -218,7 +218,7 @@ class GiftCardCreate(ModelMutation):
             cleaned_input["initial_balance_amount"] = amount
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: graphene.ResolveInfo, instance, cleaned_input):
         user = info.context.user
         app = get_app_promise(info.context).get()
         events.gift_card_issued_event(
@@ -257,7 +257,7 @@ class GiftCardCreate(ModelMutation):
         instance.tags.add(*add_tags_instances)
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: graphene.ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             tags = cleaned_data.get("add_tags")
@@ -311,7 +311,7 @@ class GiftCardUpdate(GiftCardCreate):
             raise ValidationError({"tags": error})
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         instance = cls.get_instance(info, **data)
 
         old_instance = deepcopy(instance)
@@ -345,13 +345,13 @@ class GiftCardUpdate(GiftCardCreate):
         return cls.success_response(instance)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: graphene.ResolveInfo, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         cls.clean_tags(cleaned_input)
         return cleaned_input
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: graphene.ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             remove_tags = cleaned_data.get("remove_tags")
@@ -378,7 +378,7 @@ class GiftCardDelete(ModelDeleteMutation):
         error_type_field = "gift_card_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: graphene.ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.gift_card_deleted, instance)
 
@@ -396,7 +396,7 @@ class GiftCardDeactivate(BaseMutation):
         error_type_field = "gift_card_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         gift_card_id = data.get("id")
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
@@ -429,7 +429,7 @@ class GiftCardActivate(BaseMutation):
         error_type_field = "gift_card_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         gift_card_id = data.get("id")
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
@@ -502,7 +502,7 @@ class GiftCardResend(BaseMutation):
         return User.objects.filter(email=email).first()
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         data = data.get("input")
         data = cls.clean_input(data)
         gift_card_id = data["id"]
@@ -553,7 +553,7 @@ class GiftCardAddNote(BaseMutation):
         error_type_class = GiftCardError
 
     @classmethod
-    def clean_input(cls, _info, _instance, data):
+    def clean_input(cls, _info: graphene.ResolveInfo, _instance, data):
         try:
             cleaned_input = validate_required_string_field(data["input"], "message")
         except ValidationError:
@@ -568,7 +568,7 @@ class GiftCardAddNote(BaseMutation):
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         gift_card = cls.get_node_or_error(info, data.get("id"), only_type=GiftCard)
         cleaned_input = cls.clean_input(info, gift_card, data)
         app = get_app_promise(info.context).get()

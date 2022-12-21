@@ -101,12 +101,12 @@ class TaxQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_tax_configuration(_root, _info, id):
+    def resolve_tax_configuration(_root, _info: graphene.ResolveInfo, id):
         _, id = from_global_id_or_error(id, TaxConfiguration)
         return models.TaxConfiguration.objects.filter(id=id).first()
 
     @staticmethod
-    def resolve_tax_configurations(_root, info, **kwargs):
+    def resolve_tax_configurations(_root, info: graphene.ResolveInfo, **kwargs):
         qs = models.TaxConfiguration.objects.all()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
@@ -114,18 +114,20 @@ class TaxQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_tax_class(_root, _info, id):
+    def resolve_tax_class(_root, _info: graphene.ResolveInfo, id):
         _, id = from_global_id_or_error(id, TaxClass)
         return models.TaxClass.objects.filter(id=id).first()
 
     @staticmethod
-    def resolve_tax_classes(_root, info, **kwargs):
+    def resolve_tax_classes(_root, info: graphene.ResolveInfo, **kwargs):
         qs = models.TaxClass.objects.all()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, TaxClassCountableConnection)
 
     @staticmethod
-    def resolve_tax_country_configuration(_root, _info, country_code):
+    def resolve_tax_country_configuration(
+        _root, _info: graphene.ResolveInfo, country_code
+    ):
         country_rates = models.TaxClassCountryRate.objects.filter(country=country_code)
         return TaxCountryConfiguration(
             country=Country(country_code),
@@ -133,7 +135,9 @@ class TaxQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_tax_country_configurations(_root, _info, **kwargs):
+    def resolve_tax_country_configurations(
+        _root, _info: graphene.ResolveInfo, **kwargs
+    ):
         country_rates = models.TaxClassCountryRate.objects.all()
         rates_per_country = defaultdict(list)
         for country_rate in country_rates:

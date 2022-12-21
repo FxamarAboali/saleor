@@ -39,11 +39,13 @@ class ChannelQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_channel(_root, info, *, id=None, slug=None, **kwargs):
+    def resolve_channel(
+        _root, info: graphene.ResolveInfo, *, id=None, slug=None, **kwargs
+    ):
         return resolve_channel(info, id, slug)
 
     @staticmethod
-    def resolve_channels(_root, _info, **kwargs):
+    def resolve_channels(_root, _info: graphene.ResolveInfo, **kwargs):
         return resolve_channels()
 
 

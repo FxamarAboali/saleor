@@ -59,17 +59,19 @@ class TaxConfiguration(ModelObjectType):
         model = models.TaxConfiguration
 
     @staticmethod
-    def resolve_channel(root: models.TaxConfiguration, info):
+    def resolve_channel(root: models.TaxConfiguration, info: graphene.ResolveInfo):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
-    def resolve_countries(root: models.TaxConfiguration, info):
+    def resolve_countries(root: models.TaxConfiguration, info: graphene.ResolveInfo):
         return TaxConfigurationPerCountryByTaxConfigurationIDLoader(info.context).load(
             root.pk
         )
 
     @staticmethod
-    def resolve_tax_calculation_strategy(root: models.TaxConfiguration, _info):
+    def resolve_tax_calculation_strategy(
+        root: models.TaxConfiguration, _info: graphene.ResolveInfo
+    ):
         return root.tax_calculation_strategy or TaxCalculationStrategy.FLAT_RATES
 
 
@@ -115,7 +117,9 @@ class TaxConfigurationPerCountry(ModelObjectType):
         model = models.TaxConfigurationPerCountry
 
     @staticmethod
-    def resolve_country(root: models.TaxConfigurationPerCountry, _info):
+    def resolve_country(
+        root: models.TaxConfigurationPerCountry, _info: graphene.ResolveInfo
+    ):
         return CountryDisplay(code=root.country.code, country=root.country.name)
 
 
@@ -137,7 +141,7 @@ class TaxClass(ModelObjectType):
         model = models.TaxClass
 
     @staticmethod
-    def resolve_countries(root: models.TaxConfiguration, info):
+    def resolve_countries(root: models.TaxConfiguration, info: graphene.ResolveInfo):
         return TaxClassCountryRateByTaxClassIDLoader(info.context).load(root.pk)
 
 
@@ -166,11 +170,13 @@ class TaxClassCountryRate(ModelObjectType):
         model = models.TaxClassCountryRate
 
     @staticmethod
-    def resolve_country(root: models.TaxConfigurationPerCountry, _info):
+    def resolve_country(
+        root: models.TaxConfigurationPerCountry, _info: graphene.ResolveInfo
+    ):
         return CountryDisplay(code=root.country.code, country=root.country.name)
 
     @staticmethod
-    def resolve_tax_class(root, info):
+    def resolve_tax_class(root, info: graphene.ResolveInfo):
         return (
             TaxClassByIdLoader(info.context).load(root.tax_class_id)
             if root.tax_class_id
@@ -194,5 +200,5 @@ class TaxCountryConfiguration(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_country(root, info, **kwargs):
+    def resolve_country(root, info: graphene.ResolveInfo, **kwargs):
         return CountryDisplay(code=root.country.code, country=root.country.name)

@@ -180,35 +180,42 @@ class AccountQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_customers(_root, info, **kwargs):
+    def resolve_customers(_root, info: graphene.ResolveInfo, **kwargs):
         qs = resolve_customers(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod
-    def resolve_permission_groups(_root, info, **kwargs):
+    def resolve_permission_groups(_root, info: graphene.ResolveInfo, **kwargs):
         qs = resolve_permission_groups(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, GroupCountableConnection)
 
     @staticmethod
-    def resolve_permission_group(_root, _info, *, id):
+    def resolve_permission_group(_root, _info: graphene.ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, Group)
         return resolve_permission_group(id)
 
     @staticmethod
-    def resolve_me(_root, info):
+    def resolve_me(_root, info: graphene.ResolveInfo):
         user = info.context.user
         return user if user else None
 
     @staticmethod
-    def resolve_staff_users(_root, info, **kwargs):
+    def resolve_staff_users(_root, info: graphene.ResolveInfo, **kwargs):
         qs = resolve_staff_users(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod
-    def resolve_user(_root, info, *, id=None, email=None, external_reference=None):
+    def resolve_user(
+        _root,
+        info: graphene.ResolveInfo,
+        *,
+        id=None,
+        email=None,
+        external_reference=None
+    ):
         validate_one_of_args_is_in_query(
             "id", id, "email", email, "external_reference", external_reference
         )
@@ -216,7 +223,7 @@ class AccountQueries(graphene.ObjectType):
 
     @staticmethod
     @app_promise_callback
-    def resolve_address(_root, info, app, *, id):
+    def resolve_address(_root, info: graphene.ResolveInfo, app, *, id):
         return resolve_address(info, id, app)
 
 

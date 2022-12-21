@@ -52,7 +52,7 @@ class BaseTranslationType(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_language(root, _info):
+    def resolve_language(root, _info: graphene.ResolveInfo):
         try:
             language = next(
                 language[1]
@@ -103,7 +103,9 @@ class AttributeTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_attribute(root: attribute_models.Attribute, _info):
+    def resolve_attribute(
+        root: attribute_models.Attribute, _info: graphene.ResolveInfo
+    ):
         return root
 
 
@@ -132,11 +134,15 @@ class AttributeValueTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
+    def resolve_attribute_value(
+        root: attribute_models.AttributeValue, _info: graphene.ResolveInfo
+    ):
         return root
 
     @staticmethod
-    def resolve_attribute(root: attribute_models.AttributeValue, info):
+    def resolve_attribute(
+        root: attribute_models.AttributeValue, info: graphene.ResolveInfo
+    ):
         return AttributesByAttributeId(info.context).load(root.attribute_id)
 
 
@@ -175,11 +181,15 @@ class ProductVariantTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_product_variant(root: product_models.ProductVariant, info):
+    def resolve_product_variant(
+        root: product_models.ProductVariant, info: graphene.ResolveInfo
+    ):
         return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
-    def resolve_attribute_values(root: product_models.ProductVariant, info):
+    def resolve_attribute_values(
+        root: product_models.ProductVariant, info: graphene.ResolveInfo
+    ):
         return (
             SelectedAttributesByProductVariantIdLoader(info.context)
             .load(root.id)
@@ -207,7 +217,9 @@ class ProductTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_description_json(root: product_models.ProductTranslation, _info):
+    def resolve_description_json(
+        root: product_models.ProductTranslation, _info: graphene.ResolveInfo
+    ):
         description = root.description
         return description if description is not None else {}
 
@@ -243,16 +255,20 @@ class ProductTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_product(root: product_models.Product, info):
+    def resolve_product(root: product_models.Product, info: graphene.ResolveInfo):
         return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
-    def resolve_description_json(root: product_models.Product, _info):
+    def resolve_description_json(
+        root: product_models.Product, _info: graphene.ResolveInfo
+    ):
         description = root.description
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_attribute_values(root: product_models.Product, info):
+    def resolve_attribute_values(
+        root: product_models.Product, info: graphene.ResolveInfo
+    ):
         return (
             SelectedAttributesByProductIdLoader(info.context)
             .load(root.id)
@@ -280,7 +296,9 @@ class CollectionTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_description_json(root: product_models.CollectionTranslation, _info):
+    def resolve_description_json(
+        root: product_models.CollectionTranslation, _info: graphene.ResolveInfo
+    ):
         description = root.description
         return description if description is not None else {}
 
@@ -313,14 +331,16 @@ class CollectionTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_collection(root: product_models.Collection, info):
+    def resolve_collection(root: product_models.Collection, info: graphene.ResolveInfo):
         collection = product_models.Collection.objects.all().filter(pk=root.id).first()
         return (
             ChannelContext(node=collection, channel_slug=None) if collection else None
         )
 
     @staticmethod
-    def resolve_description_json(root: product_models.Collection, _info):
+    def resolve_description_json(
+        root: product_models.Collection, _info: graphene.ResolveInfo
+    ):
         description = root.description
         return description if description is not None else {}
 
@@ -345,7 +365,9 @@ class CategoryTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_description_json(root: product_models.CategoryTranslation, _info):
+    def resolve_description_json(
+        root: product_models.CategoryTranslation, _info: graphene.ResolveInfo
+    ):
         description = root.description
         return description if description is not None else {}
 
@@ -376,11 +398,13 @@ class CategoryTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_category(root: product_models.Category, _info):
+    def resolve_category(root: product_models.Category, _info: graphene.ResolveInfo):
         return root
 
     @staticmethod
-    def resolve_description_json(root: product_models.Category, _info):
+    def resolve_description_json(
+        root: product_models.Category, _info: graphene.ResolveInfo
+    ):
         description = root.description
         return description if description is not None else {}
 
@@ -401,7 +425,9 @@ class PageTranslation(BaseTranslationType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_content_json(root: page_models.PageTranslation, _info):
+    def resolve_content_json(
+        root: page_models.PageTranslation, _info: graphene.ResolveInfo
+    ):
         content = root.content
         return content if content is not None else {}
 
@@ -438,7 +464,7 @@ class PageTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_page(root: page_models.Page, info):
+    def resolve_page(root: page_models.Page, info: graphene.ResolveInfo):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
             .filter(pk=root.id)
@@ -446,12 +472,12 @@ class PageTranslatableContent(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_content_json(root: page_models.Page, _info):
+    def resolve_content_json(root: page_models.Page, _info: graphene.ResolveInfo):
         content = root.content
         return content if content is not None else {}
 
     @staticmethod
-    def resolve_attribute_values(root: page_models.Page, info):
+    def resolve_attribute_values(root: page_models.Page, info: graphene.ResolveInfo):
         return (
             SelectedAttributesByPageIdLoader(info.context)
             .load(root.id)
@@ -490,7 +516,7 @@ class VoucherTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_voucher(root: discount_models.Voucher, _info):
+    def resolve_voucher(root: discount_models.Voucher, _info: graphene.ResolveInfo):
         return ChannelContext(node=root, channel_slug=None)
 
 
@@ -524,7 +550,7 @@ class SaleTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_sale(root: discount_models.Sale, _info):
+    def resolve_sale(root: discount_models.Sale, _info: graphene.ResolveInfo):
         return ChannelContext(node=root, channel_slug=None)
 
 
@@ -567,7 +593,7 @@ class MenuItemTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_menu_item(root: menu_models.MenuItem, _info):
+    def resolve_menu_item(root: menu_models.MenuItem, _info: graphene.ResolveInfo):
         return ChannelContext(node=root, channel_slug=None)
 
 
@@ -611,5 +637,7 @@ class ShippingMethodTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_shipping_method(root: shipping_models.ShippingMethod, _info):
+    def resolve_shipping_method(
+        root: shipping_models.ShippingMethod, _info: graphene.ResolveInfo
+    ):
         return ChannelContext(node=root, channel_slug=None)

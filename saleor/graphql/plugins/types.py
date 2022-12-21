@@ -38,7 +38,7 @@ class PluginConfiguration(graphene.ObjectType):
         description = "Stores information about a configuration of plugin."
 
     @staticmethod
-    def resolve_configuration(root: "BasePlugin", info):
+    def resolve_configuration(root: "BasePlugin", info: graphene.ResolveInfo):
         return root.resolve_plugin_configuration(info.context)
 
 
@@ -62,19 +62,19 @@ class Plugin(graphene.ObjectType):
         description = "Plugin."
 
     @staticmethod
-    def resolve_name(root: "Plugin", _info):
+    def resolve_name(root: "Plugin", _info: graphene.ResolveInfo):
         return root.name
 
     @staticmethod
-    def resolve_description(root: "Plugin", _info):
+    def resolve_description(root: "Plugin", _info: graphene.ResolveInfo):
         return root.description
 
     @staticmethod
-    def resolve_global_configuration(root: "Plugin", _info):
+    def resolve_global_configuration(root: "Plugin", _info: graphene.ResolveInfo):
         return root.global_configuration
 
     @staticmethod
-    def resolve_channel_configurations(root: "Plugin", _info):
+    def resolve_channel_configurations(root: "Plugin", _info: graphene.ResolveInfo):
         return root.channel_configurations or []
 
 

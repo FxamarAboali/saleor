@@ -45,7 +45,7 @@ class TranslatableItem(graphene.Union):
         types = tuple(TYPES_TRANSLATIONS_MAP.values())
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: graphene.ResolveInfo):
         instance_type = type(instance)
         if instance_type in TYPES_TRANSLATIONS_MAP:
             return TYPES_TRANSLATIONS_MAP[instance_type]
@@ -98,7 +98,7 @@ class TranslationQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_translations(_root, info, *, kind, **kwargs):
+    def resolve_translations(_root, info: graphene.ResolveInfo, *, kind, **kwargs):
         if kind == TranslatableKinds.PRODUCT:
             qs = resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:
@@ -125,7 +125,7 @@ class TranslationQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
     @staticmethod
-    def resolve_translation(_root, _info, *, id, kind):
+    def resolve_translation(_root, _info: graphene.ResolveInfo, *, id, kind):
         _type, kind_id = from_global_id_or_error(id)
         if not _type == kind:
             return None

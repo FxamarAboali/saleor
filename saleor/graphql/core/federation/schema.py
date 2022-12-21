@@ -75,7 +75,7 @@ def build_federated_schema(query=None, mutation=None, types=None, subscription=N
 def create_entity_type_resolver(schema):
     """Create type resolver aware of ChannelContext on _Entity union."""
 
-    def resolve_entity_type(instance, info):
+    def resolve_entity_type(instance, info: graphene.ResolveInfo):
         # Use new strategy to resolve GraphQL Type for `ObjectType`
         if isinstance(instance, ChannelContext):
             model = type(instance.node)
@@ -94,7 +94,7 @@ def create_entity_type_resolver(schema):
     return resolve_entity_type
 
 
-def resolve_entities(_, info, *, representations):
+def resolve_entities(_, info: graphene.ResolveInfo, *, representations):
     max_representations = settings.FEDERATED_QUERY_MAX_ENTITIES
     if max_representations and len(representations) > max_representations:
         representations_count = len(representations)
@@ -163,7 +163,7 @@ def create_service_sdl_resolver(schema):
             + federated_schema_sdl[type_fields_open:]
         )
 
-    def resolve_service_sdl(_root, _info):
+    def resolve_service_sdl(_root, _info: graphene.ResolveInfo):
         return {"sdl": federated_schema_sdl}
 
     return resolve_service_sdl

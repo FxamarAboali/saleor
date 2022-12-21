@@ -49,13 +49,15 @@ class ShippingQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_shipping_zone(_root, _info, *, id, channel=None):
+    def resolve_shipping_zone(_root, _info: graphene.ResolveInfo, *, id, channel=None):
         _, id = from_global_id_or_error(id, ShippingZone)
         instance = models.ShippingZone.objects.filter(id=id).first()
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @staticmethod
-    def resolve_shipping_zones(_root, info, *, channel=None, **kwargs):
+    def resolve_shipping_zones(
+        _root, info: graphene.ResolveInfo, *, channel=None, **kwargs
+    ):
         qs = resolve_shipping_zones(channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(

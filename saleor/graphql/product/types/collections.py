@@ -82,7 +82,9 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.Collection
 
     @staticmethod
-    def resolve_channel(root: ChannelContext[models.Product], _info):
+    def resolve_channel(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo
+    ):
         return root.channel_slug
 
     @staticmethod
@@ -111,7 +113,9 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
+    def resolve_products(
+        root: ChannelContext[models.Collection], info: graphene.ResolveInfo, **kwargs
+    ):
         requestor = get_user_or_app_from_context(info.context)
         qs = root.node.products.visible_to_user(  # type: ignore
             requestor, root.channel_slug
@@ -123,18 +127,22 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def resolve_channel_listings(root: ChannelContext[models.Collection], info):
+    def resolve_channel_listings(
+        root: ChannelContext[models.Collection], info: graphene.ResolveInfo
+    ):
         return CollectionChannelListingByCollectionIdLoader(info.context).load(
             root.node.id
         )
 
     @staticmethod
-    def resolve_description_json(root: ChannelContext[models.Collection], _info):
+    def resolve_description_json(
+        root: ChannelContext[models.Collection], _info: graphene.ResolveInfo
+    ):
         description = root.node.description
         return description if description is not None else {}
 
     @staticmethod
-    def __resolve_references(roots: List["Collection"], info):
+    def __resolve_references(roots: List["Collection"], info: graphene.ResolveInfo):
         from ..resolvers import resolve_collections
 
         channels = defaultdict(set)

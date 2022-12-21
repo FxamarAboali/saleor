@@ -114,7 +114,7 @@ class CreateToken(BaseMutation):
         return None
 
     @classmethod
-    def get_user(cls, _info, data):
+    def get_user(cls, _info: graphene.ResolveInfo, data):
         user = cls._retrieve_user_from_credentials(data["email"], data["password"])
         if not user:
             raise ValidationError(
@@ -147,7 +147,7 @@ class CreateToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         user = cls.get_user(info, data)
         additional_paylod = {}
 
@@ -212,7 +212,7 @@ class RefreshToken(BaseMutation):
         return payload
 
     @classmethod
-    def get_refresh_token(cls, info, data):
+    def get_refresh_token(cls, info: graphene.ResolveInfo, data):
         request = info.context
         refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
         refresh_token = data.get("refresh_token") or refresh_token
@@ -273,7 +273,7 @@ class RefreshToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         refresh_token = cls.get_refresh_token(info, data)
         payload = cls.clean_refresh_token(refresh_token)
 
@@ -326,7 +326,7 @@ class VerifyToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         token = data["token"]
         payload = cls.get_payload(token)
         user = cls.get_user(payload)
@@ -341,7 +341,7 @@ class DeactivateAllUserTokens(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         user = info.context.user
         user.jwt_token_key = get_random_string(length=12)
         user.save(update_fields=["jwt_token_key", "updated_at"])
@@ -372,7 +372,7 @@ class ExternalAuthenticationUrl(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -411,7 +411,7 @@ class ExternalObtainAccessTokens(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -461,7 +461,7 @@ class ExternalRefresh(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -501,7 +501,7 @@ class ExternalLogout(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -533,7 +533,7 @@ class ExternalVerify(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]

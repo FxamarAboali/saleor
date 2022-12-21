@@ -30,7 +30,7 @@ class ProductMediaUpdate(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         media = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
         product = models.Product.objects.prefetched_for_webhook().get(
             pk=media.product_id

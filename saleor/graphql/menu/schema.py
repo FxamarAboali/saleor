@@ -75,7 +75,7 @@ class MenuQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_menu(_root, info, *, channel=None, **data):
+    def resolve_menu(_root, info: graphene.ResolveInfo, *, channel=None, **data):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_menu(
@@ -83,7 +83,7 @@ class MenuQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_menus(_root, info, *, channel=None, **kwargs):
+    def resolve_menus(_root, info: graphene.ResolveInfo, *, channel=None, **kwargs):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = resolve_menus(info, channel)
@@ -91,14 +91,16 @@ class MenuQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, MenuCountableConnection)
 
     @staticmethod
-    def resolve_menu_item(_root, _info, *, channel=None, **data):
+    def resolve_menu_item(_root, _info: graphene.ResolveInfo, *, channel=None, **data):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         _, id = from_global_id_or_error(data.get("id"), MenuItem)
         return resolve_menu_item(id, channel)
 
     @staticmethod
-    def resolve_menu_items(_root, info, *, channel=None, **kwargs):
+    def resolve_menu_items(
+        _root, info: graphene.ResolveInfo, *, channel=None, **kwargs
+    ):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         menu_items = resolve_menu_items(info)

@@ -235,11 +235,11 @@ class PreorderData(graphene.ObjectType):
         description = "Represents preorder settings for product variant."
 
     @staticmethod
-    def resolve_global_threshold(root, _info):
+    def resolve_global_threshold(root, _info: graphene.ResolveInfo):
         return root.global_threshold
 
     @staticmethod
-    def resolve_global_sold_units(root, _info):
+    def resolve_global_sold_units(root, _info: graphene.ResolveInfo):
         return root.global_sold_units
 
 
@@ -377,11 +377,15 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    def resolve_created(root: ChannelContext[models.ProductVariant], _info):
+    def resolve_created(
+        root: ChannelContext[models.ProductVariant], _info: graphene.ResolveInfo
+    ):
         return root.node.created_at
 
     @staticmethod
-    def resolve_channel(root: ChannelContext[models.Product], _info):
+    def resolve_channel(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo
+    ):
         return root.channel_slug
 
     @staticmethod
@@ -513,7 +517,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         ).load((root.node.id, country_code, channel_slug))
 
     @staticmethod
-    def resolve_digital_content(root: ChannelContext[models.ProductVariant], _info):
+    def resolve_digital_content(
+        root: ChannelContext[models.ProductVariant], _info: graphene.ResolveInfo
+    ):
         return getattr(root.node, "digital_content", None)
 
     @staticmethod
@@ -552,7 +558,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_channel_listings(root: ChannelContext[models.ProductVariant], info):
+    def resolve_channel_listings(
+        root: ChannelContext[models.ProductVariant], info: graphene.ResolveInfo
+    ):
         return VariantChannelListingByVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
@@ -679,21 +687,30 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         ).then(load_tax_configuration)
 
     @staticmethod
-    def resolve_product(root: ChannelContext[models.ProductVariant], info):
+    def resolve_product(
+        root: ChannelContext[models.ProductVariant], info: graphene.ResolveInfo
+    ):
         product = ProductByIdLoader(info.context).load(root.node.product_id)
         return product.then(
             lambda product: ChannelContext(node=product, channel_slug=root.channel_slug)
         )
 
     @staticmethod
-    def resolve_quantity_ordered(root: ChannelContext[models.ProductVariant], _info):
+    def resolve_quantity_ordered(
+        root: ChannelContext[models.ProductVariant], _info: graphene.ResolveInfo
+    ):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(root.node, "quantity_ordered", None)
 
     @staticmethod
     @traced_resolver
-    def resolve_revenue(root: ChannelContext[models.ProductVariant], info, *, period):
+    def resolve_revenue(
+        root: ChannelContext[models.ProductVariant],
+        info: graphene.ResolveInfo,
+        *,
+        period
+    ):
         start_date = reporting_period_to_date(period)
         variant = root.node
         channel_slug = root.channel_slug
@@ -733,20 +750,28 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_media(root: ChannelContext[models.ProductVariant], info):
+    def resolve_media(
+        root: ChannelContext[models.ProductVariant], info: graphene.ResolveInfo
+    ):
         return MediaByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_images(root: ChannelContext[models.ProductVariant], info):
+    def resolve_images(
+        root: ChannelContext[models.ProductVariant], info: graphene.ResolveInfo
+    ):
         return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_weight(root: ChannelContext[models.ProductVariant], _info):
+    def resolve_weight(
+        root: ChannelContext[models.ProductVariant], _info: graphene.ResolveInfo
+    ):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
     @traced_resolver
-    def resolve_preorder(root: ChannelContext[models.ProductVariant], info):
+    def resolve_preorder(
+        root: ChannelContext[models.ProductVariant], info: graphene.ResolveInfo
+    ):
         variant = root.node
 
         variant_channel_listings = VariantChannelListingByVariantIdLoader(
@@ -771,7 +796,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         return variant_channel_listings.then(calculate_global_sold_units)
 
     @staticmethod
-    def __resolve_references(roots: List["ProductVariant"], info):
+    def __resolve_references(roots: List["ProductVariant"], info: graphene.ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -967,16 +992,22 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.Product
 
     @staticmethod
-    def resolve_created(root: ChannelContext[models.Product], _info):
+    def resolve_created(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo
+    ):
         created_at = root.node.created_at
         return created_at
 
     @staticmethod
-    def resolve_channel(root: ChannelContext[models.Product], _info):
+    def resolve_channel(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo
+    ):
         return root.channel_slug
 
     @staticmethod
-    def resolve_default_variant(root: ChannelContext[models.Product], info):
+    def resolve_default_variant(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         default_variant_id = root.node.default_variant_id
         if default_variant_id is None:
             return None
@@ -991,19 +1022,25 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_category(root: ChannelContext[models.Product], info):
+    def resolve_category(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         category_id = root.node.category_id
         if category_id is None:
             return None
         return CategoryByIdLoader(info.context).load(category_id)
 
     @staticmethod
-    def resolve_description_json(root: ChannelContext[models.Product], _info):
+    def resolve_description_json(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo
+    ):
         description = root.node.description
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_tax_type(root: ChannelContext[models.Product], info):
+    def resolve_tax_type(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         def with_tax_class(data):
             tax_class, manager = data
             tax_data = manager.get_tax_code_from_object_meta(tax_class)
@@ -1052,11 +1089,16 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_url(_root, _info):
+    def resolve_url(_root, _info: graphene.ResolveInfo):
         return ""
 
     @staticmethod
-    def resolve_pricing(root: ChannelContext[models.Product], info, *, address=None):
+    def resolve_pricing(
+        root: ChannelContext[models.Product],
+        info: graphene.ResolveInfo,
+        *,
+        address=None
+    ):
         if not root.channel_slug:
             return None
 
@@ -1239,7 +1281,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_attribute(root: ChannelContext[models.Product], info, slug):
+    def resolve_attribute(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo, slug
+    ):
         def get_selected_attribute_by_slug(
             attributes: List[SelectedAttribute],
         ) -> Optional[SelectedAttribute]:
@@ -1255,21 +1299,29 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_attributes(root: ChannelContext[models.Product], info):
+    def resolve_attributes(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_media_by_id(root: ChannelContext[models.Product], _info, *, id):
+    def resolve_media_by_id(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo, *, id
+    ):
         _type, pk = from_global_id_or_error(id, ProductMedia)
         return root.node.media.filter(pk=pk).first()
 
     @staticmethod
-    def resolve_image_by_id(root: ChannelContext[models.Product], _info, *, id):
+    def resolve_image_by_id(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo, *, id
+    ):
         _type, pk = from_global_id_or_error(id, ProductImage)
         return root.node.media.filter(pk=pk).first()
 
     @staticmethod
-    def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
+    def resolve_media(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo, sort_by=None
+    ):
         if sort_by is None:
             sort_by = {
                 "field": ["sort_order"],
@@ -1288,11 +1340,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return MediaByProductIdLoader(info.context).load(root.node.id).then(sort_media)
 
     @staticmethod
-    def resolve_images(root: ChannelContext[models.Product], info):
+    def resolve_images(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         return ImagesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_variant(root: ChannelContext[models.Product], info, id=None, sku=None):
+    def resolve_variant(
+        root: ChannelContext[models.Product],
+        info: graphene.ResolveInfo,
+        id=None,
+        sku=None,
+    ):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
 
         def get_product_variant(
@@ -1326,7 +1385,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return variants.then(get_product_variant)
 
     @staticmethod
-    def resolve_variants(root: ChannelContext[models.Product], info):
+    def resolve_variants(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -1351,12 +1412,16 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return variants.then(map_channel_context)
 
     @staticmethod
-    def resolve_channel_listings(root: ChannelContext[models.Product], info):
+    def resolve_channel_listings(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @traced_resolver
-    def resolve_collections(root: ChannelContext[models.Product], info):
+    def resolve_collections(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         requestor = get_user_or_app_from_context(info.context)
 
         has_required_permissions = has_one_of_permissions(
@@ -1407,11 +1472,15 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_weight(root: ChannelContext[models.Product], _info):
+    def resolve_weight(
+        root: ChannelContext[models.Product], _info: graphene.ResolveInfo
+    ):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
-    def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
+    def resolve_is_available_for_purchase(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         if not root.channel_slug:
             return None
         channel_slug = str(root.channel_slug)
@@ -1428,7 +1497,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
+    def resolve_available_for_purchase(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         if not root.channel_slug:
             return None
         channel_slug = str(root.channel_slug)
@@ -1445,7 +1516,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_available_for_purchase_at(root: ChannelContext[models.Product], info):
+    def resolve_available_for_purchase_at(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         if not root.channel_slug:
             return None
         channel_slug = str(root.channel_slug)
@@ -1462,11 +1535,15 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_product_type(root: ChannelContext[models.Product], info):
+    def resolve_product_type(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         return ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
 
     @staticmethod
-    def resolve_tax_class(root: ChannelContext[models.Product], info):
+    def resolve_tax_class(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         product_type = (
             ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
             if not root.node.tax_class_id
@@ -1485,7 +1562,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
         return Promise.resolve(product_type).then(resolve_tax_class)
 
-    def resolve_charge_taxes(root: ChannelContext[models.Product], info):
+    def resolve_charge_taxes(
+        root: ChannelContext[models.Product], info: graphene.ResolveInfo
+    ):
         # Deprecated: this field is deprecated as it only checks whether there are any
         # non-zero flat rates set for a product. Instead channel tax configuration
         # should be used to check whether taxes are charged.
@@ -1511,7 +1590,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return ProductChargeTaxesByTaxClassIdLoader(info.context).load(tax_class_id)
 
     @staticmethod
-    def __resolve_references(roots: List["Product"], info):
+    def __resolve_references(roots: List["Product"], info: graphene.ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         channels = defaultdict(set)
         roots_ids = []
@@ -1616,7 +1695,7 @@ class ProductType(ModelObjectType):
         model = models.ProductType
 
     @staticmethod
-    def resolve_tax_type(root: models.ProductType, info):
+    def resolve_tax_type(root: models.ProductType, info: graphene.ResolveInfo):
         def with_tax_class(data):
             tax_class, manager = data
             tax_data = manager.get_tax_code_from_object_meta(tax_class)
@@ -1630,7 +1709,9 @@ class ProductType(ModelObjectType):
         return None
 
     @staticmethod
-    def resolve_product_attributes(root: models.ProductType, info):
+    def resolve_product_attributes(
+        root: models.ProductType, info: graphene.ResolveInfo
+    ):
         def unpack_attributes(attributes):
             return [attr for attr, *_ in attributes]
 
@@ -1697,7 +1778,9 @@ class ProductType(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_products(root: models.ProductType, info, *, channel=None, **kwargs):
+    def resolve_products(
+        root: models.ProductType, info: graphene.ResolveInfo, *, channel=None, **kwargs
+    ):
         requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
@@ -1707,7 +1790,9 @@ class ProductType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def resolve_available_attributes(root: models.ProductType, info, **kwargs):
+    def resolve_available_attributes(
+        root: models.ProductType, info: graphene.ResolveInfo, **kwargs
+    ):
         qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
             root.pk
         )
@@ -1716,11 +1801,11 @@ class ProductType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
-    def resolve_weight(root: models.ProductType, _info):
+    def resolve_weight(root: models.ProductType, _info: graphene.ResolveInfo):
         return convert_weight_to_default_weight_unit(root.weight)
 
     @staticmethod
-    def resolve_tax_class(root: models.ProductType, info):
+    def resolve_tax_class(root: models.ProductType, info: graphene.ResolveInfo):
         return (
             TaxClassByIdLoader(info.context).load(root.tax_class_id)
             if root.tax_class_id
@@ -1728,7 +1813,7 @@ class ProductType(ModelObjectType):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["ProductType"], _info):
+    def __resolve_references(roots: List["ProductType"], _info: graphene.ResolveInfo):
         return resolve_federation_references(
             ProductType, roots, models.ProductType.objects
         )
@@ -1754,7 +1839,9 @@ class ProductMedia(ModelObjectType):
         model = models.ProductMedia
 
     @staticmethod
-    def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
+    def resolve_url(
+        root: models.ProductMedia, info: graphene.ResolveInfo, *, size=None, format=None
+    ):
         if root.external_url:
             return root.external_url
 
@@ -1780,7 +1867,7 @@ class ProductMedia(ModelObjectType):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["ProductMedia"], _info):
+    def __resolve_references(roots: List["ProductMedia"], _info: graphene.ResolveInfo):
         return resolve_federation_references(
             ProductMedia, roots, models.ProductMedia.objects
         )
@@ -1803,11 +1890,13 @@ class ProductImage(graphene.ObjectType):
         description = "Represents a product image."
 
     @staticmethod
-    def resolve_id(root: models.ProductMedia, info):
+    def resolve_id(root: models.ProductMedia, info: graphene.ResolveInfo):
         return graphene.Node.to_global_id("ProductImage", root.id)
 
     @staticmethod
-    def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
+    def resolve_url(
+        root: models.ProductMedia, info: graphene.ResolveInfo, *, size=None, format=None
+    ):
         if not root.image:
             return
 

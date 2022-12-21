@@ -65,7 +65,7 @@ class TaxClassCreate(ModelMutation):
         models.TaxClassCountryRate.objects.bulk_create(to_create)
 
     @classmethod
-    def save(cls, _info, instance, cleaned_input):
+    def save(cls, _info: graphene.ResolveInfo, instance, cleaned_input):
         instance.save()
         create_country_rates = cleaned_input.get("create_country_rates", [])
         cls.create_country_rates(instance, create_country_rates)

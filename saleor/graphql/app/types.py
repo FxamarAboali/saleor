@@ -44,7 +44,9 @@ def has_required_permission(app: models.App, context):
         )
 
 
-def check_permission_for_access_to_meta(root: models.App, info, app):
+def check_permission_for_access_to_meta(
+    root: models.App, info: graphene.ResolveInfo, app
+):
     has_access = has_access_to_app_public_meta(root, info, app)
     if not has_access:
         raise PermissionDenied(
@@ -52,7 +54,7 @@ def check_permission_for_access_to_meta(root: models.App, info, app):
         )
 
 
-def has_access_to_app_public_meta(root, info, app) -> bool:
+def has_access_to_app_public_meta(root, info: graphene.ResolveInfo, app) -> bool:
     auth_token = info.context.decoded_auth_token or {}
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
         _, app_id = from_global_id_or_error(auth_token["app"], "App")
@@ -85,11 +87,11 @@ class AppManifestExtension(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_target(root, info):
+    def resolve_target(root, info: graphene.ResolveInfo):
         return root.get("target") or AppExtensionTarget.POPUP
 
     @staticmethod
-    def resolve_url(root, info):
+    def resolve_url(root, info: graphene.ResolveInfo):
         """Return an extension URL."""
         return resolve_app_extension_url(root)
 
@@ -107,7 +109,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         model = models.AppExtension
 
     @staticmethod
-    def resolve_url(root, info):
+    def resolve_url(root, info: graphene.ResolveInfo):
         return (
             AppByIdLoader(info.context)
             .load(root.app_id)
@@ -120,12 +122,12 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_target(root, info):
+    def resolve_target(root, info: graphene.ResolveInfo):
         return root.target
 
     @staticmethod
     @app_promise_callback
-    def resolve_app(root, info, app):
+    def resolve_app(root, info: graphene.ResolveInfo, app):
         app_id = None
         if app and app.id == root.app_id:
             app_id = root.app_id
@@ -141,14 +143,14 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         return AppByIdLoader(info.context).load(app_id)
 
     @staticmethod
-    def resolve_permissions(root: models.AppExtension, _info):
+    def resolve_permissions(root: models.AppExtension, _info: graphene.ResolveInfo):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_access_token(root: models.AppExtension, info):
+    def resolve_access_token(root: models.AppExtension, info: graphene.ResolveInfo):
         def _resolve_access_token(app):
             return resolve_access_token_for_app_extension(info, root, app)
 
@@ -178,15 +180,15 @@ class AppManifestWebhook(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_async_events(root, info):
+    def resolve_async_events(root, info: graphene.ResolveInfo):
         return [WebhookEventTypeAsyncEnum[name] for name in root.get("asyncEvents", [])]
 
     @staticmethod
-    def resolve_sync_events(root, info):
+    def resolve_sync_events(root, info: graphene.ResolveInfo):
         return [WebhookEventTypeSyncEnum[name] for name in root.get("syncEvents", [])]
 
     @staticmethod
-    def resolve_target_url(root, info):
+    def resolve_target_url(root, info: graphene.ResolveInfo):
         return root["targetUrl"]
 
 
@@ -227,7 +229,7 @@ class Manifest(graphene.ObjectType):
         description = "The manifest definition."
 
     @staticmethod
-    def resolve_extensions(root, info):
+    def resolve_extensions(root, info: graphene.ResolveInfo):
         for extension in root.extensions:
             extension["app_url"] = root.app_url
         return root.extensions
@@ -251,7 +253,7 @@ class AppToken(graphene.ObjectType):
             return None
 
     @staticmethod
-    def resolve_auth_token(root: models.AppToken, _info):
+    def resolve_auth_token(root: models.AppToken, _info: graphene.ResolveInfo):
         return root.token_last_4
 
 
@@ -321,36 +323,36 @@ class App(ModelObjectType):
         model = models.App
 
     @staticmethod
-    def resolve_created(root: models.App, _info):
+    def resolve_created(root: models.App, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_permissions(root: models.App, _info):
+    def resolve_permissions(root: models.App, _info: graphene.ResolveInfo):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_tokens(root: models.App, info):
+    def resolve_tokens(root: models.App, info: graphene.ResolveInfo):
         has_required_permission(root, info.context)
         return root.tokens.all()
 
     @staticmethod
-    def resolve_webhooks(root: models.App, info):
+    def resolve_webhooks(root: models.App, info: graphene.ResolveInfo):
         has_required_permission(root, info.context)
         return root.webhooks.all()
 
     @staticmethod
-    def resolve_access_token(root: models.App, info):
+    def resolve_access_token(root: models.App, info: graphene.ResolveInfo):
         return resolve_access_token_for_app(info, root)
 
     @staticmethod
-    def resolve_extensions(root: models.App, info):
+    def resolve_extensions(root: models.App, info: graphene.ResolveInfo):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["App"], info):
+    def __resolve_references(roots: List["App"], info: graphene.ResolveInfo):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)
@@ -363,19 +365,23 @@ class App(ModelObjectType):
 
     @staticmethod
     @app_promise_callback
-    def resolve_metadata(root: models.App, info, app):
+    def resolve_metadata(root: models.App, info: graphene.ResolveInfo, app):
         check_permission_for_access_to_meta(root, info, app)
         return ObjectWithMetadata.resolve_metadata(root, info)
 
     @staticmethod
     @app_promise_callback
-    def resolve_metafield(root: models.App, info, app, *, key: str):
+    def resolve_metafield(
+        root: models.App, info: graphene.ResolveInfo, app, *, key: str
+    ):
         check_permission_for_access_to_meta(root, info, app)
         return ObjectWithMetadata.resolve_metafield(root, info, key=key)
 
     @staticmethod
     @app_promise_callback
-    def resolve_metafields(root: models.App, info, app, *, keys=None):
+    def resolve_metafields(
+        root: models.App, info: graphene.ResolveInfo, app, *, keys=None
+    ):
         check_permission_for_access_to_meta(root, info, app)
         return ObjectWithMetadata.resolve_metafields(root, info, keys=keys)
 

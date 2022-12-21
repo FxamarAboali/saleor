@@ -24,7 +24,7 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: graphene.ResolveInfo, instance):
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {
@@ -51,7 +51,7 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, _info, instance):
+    def clean_instance(cls, _info: graphene.ResolveInfo, instance):
         if instance.order.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {

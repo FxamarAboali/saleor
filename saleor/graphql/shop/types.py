@@ -77,10 +77,10 @@ class GiftCardSettings(ModelObjectType):
         description = "Gift card related settings from site settings."
         model = site_models.SiteSettings
 
-    def resolve_expiry_type(root, info):
+    def resolve_expiry_type(root, info: graphene.ResolveInfo):
         return root.gift_card_expiry_type
 
-    def resolve_expiry_period(root, info):
+    def resolve_expiry_period(root, info: graphene.ResolveInfo):
         if root.gift_card_expiry_period_type is None:
             return None
         return TimePeriod(
@@ -336,35 +336,43 @@ class Shop(graphene.ObjectType):
     @traced_resolver
     @plugin_manager_promise_callback
     def resolve_available_payment_gateways(
-        _, _info, manager, currency: Optional[str] = None, channel: Optional[str] = None
+        _,
+        _info: graphene.ResolveInfo,
+        manager,
+        currency: Optional[str] = None,
+        channel: Optional[str] = None,
     ):
         return manager.list_payment_gateways(currency=currency, channel_slug=channel)
 
     @staticmethod
     @traced_resolver
     @plugin_manager_promise_callback
-    def resolve_available_external_authentications(_, _info, manager):
+    def resolve_available_external_authentications(
+        _, _info: graphene.ResolveInfo, manager
+    ):
         return manager.list_external_authentications(active_only=True)
 
     @staticmethod
-    def resolve_available_shipping_methods(_, info, *, channel, address=None):
+    def resolve_available_shipping_methods(
+        _, info: graphene.ResolveInfo, *, channel, address=None
+    ):
         return resolve_available_shipping_methods(
             info, channel_slug=channel, address=address
         )
 
     @staticmethod
-    def resolve_channel_currencies(_, _info):
+    def resolve_channel_currencies(_, _info: graphene.ResolveInfo):
         return set(
             channel_models.Channel.objects.values_list("currency_code", flat=True)
         )
 
     @staticmethod
-    def resolve_countries(_, _info, **kwargs):
+    def resolve_countries(_, _info: graphene.ResolveInfo, **kwargs):
         return resolve_countries(**kwargs)
 
     @staticmethod
     @load_site_callback
-    def resolve_domain(_, _info, site):
+    def resolve_domain(_, _info: graphene.ResolveInfo, site):
         return Domain(
             host=site.domain,
             ssl_enabled=settings.ENABLE_SSL,
@@ -373,11 +381,11 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_description(_, _info, site):
+    def resolve_description(_, _info: graphene.ResolveInfo, site):
         return site.settings.description
 
     @staticmethod
-    def resolve_languages(_, _info):
+    def resolve_languages(_, _info: graphene.ResolveInfo):
         return [
             LanguageDisplay(
                 code=LanguageCodeEnum[str_to_enum(language[0])], language=language[1]
@@ -387,52 +395,52 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_name(_, _info, site):
+    def resolve_name(_, _info: graphene.ResolveInfo, site):
         return site.name
 
     @staticmethod
     @traced_resolver
-    def resolve_permissions(_, _info):
+    def resolve_permissions(_, _info: graphene.ResolveInfo):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_phone_prefixes(_, _info):
+    def resolve_phone_prefixes(_, _info: graphene.ResolveInfo):
         return list(COUNTRY_CODE_TO_REGION_CODE.keys())
 
     @staticmethod
     @load_site_callback
-    def resolve_header_text(_, _info, site):
+    def resolve_header_text(_, _info: graphene.ResolveInfo, site):
         return site.settings.header_text
 
     @staticmethod
     @load_site_callback
-    def resolve_fulfillment_auto_approve(_, _info, site):
+    def resolve_fulfillment_auto_approve(_, _info: graphene.ResolveInfo, site):
         return site.settings.fulfillment_auto_approve
 
     @staticmethod
     @load_site_callback
-    def resolve_fulfillment_allow_unpaid(_, info, site):
+    def resolve_fulfillment_allow_unpaid(_, info: graphene.ResolveInfo, site):
         return site.settings.fulfillment_allow_unpaid
 
     @staticmethod
     @load_site_callback
-    def resolve_charge_taxes_on_shipping(_, _info, site):
+    def resolve_charge_taxes_on_shipping(_, _info: graphene.ResolveInfo, site):
         return site.settings.charge_taxes_on_shipping
 
     @staticmethod
     @load_site_callback
-    def resolve_track_inventory_by_default(_, _info, site):
+    def resolve_track_inventory_by_default(_, _info: graphene.ResolveInfo, site):
         return site.settings.track_inventory_by_default
 
     @staticmethod
     @load_site_callback
-    def resolve_default_weight_unit(_, _info, site):
+    def resolve_default_weight_unit(_, _info: graphene.ResolveInfo, site):
         return site.settings.default_weight_unit
 
     @staticmethod
     @traced_resolver
-    def resolve_default_country(_, _info):
+    def resolve_default_country(_, _info: graphene.ResolveInfo):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
@@ -446,73 +454,79 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_default_mail_sender_name(_, _info, site):
+    def resolve_default_mail_sender_name(_, _info: graphene.ResolveInfo, site):
         return site.settings.default_mail_sender_name
 
     @staticmethod
     @load_site_callback
-    def resolve_default_mail_sender_address(_, _info, site):
+    def resolve_default_mail_sender_address(_, _info: graphene.ResolveInfo, site):
         return site.settings.default_mail_sender_address
 
     @staticmethod
     @load_site_callback
-    def resolve_company_address(_, _info, site):
+    def resolve_company_address(_, _info: graphene.ResolveInfo, site):
         return site.settings.company_address
 
     @staticmethod
     @load_site_callback
-    def resolve_customer_set_password_url(_, _info, site):
+    def resolve_customer_set_password_url(_, _info: graphene.ResolveInfo, site):
         return site.settings.customer_set_password_url
 
     @staticmethod
     @load_site_callback
-    def resolve_translation(_, info, site, *, language_code):
+    def resolve_translation(_, info: graphene.ResolveInfo, site, *, language_code):
         return resolve_translation(site.settings, info, language_code=language_code)
 
     @staticmethod
     @load_site_callback
-    def resolve_automatic_fulfillment_digital_products(_, _info, site):
+    def resolve_automatic_fulfillment_digital_products(
+        _, _info: graphene.ResolveInfo, site
+    ):
         return site.settings.automatic_fulfillment_digital_products
 
     @staticmethod
     @load_site_callback
-    def resolve_reserve_stock_duration_anonymous_user(_, _info, site):
+    def resolve_reserve_stock_duration_anonymous_user(
+        _, _info: graphene.ResolveInfo, site
+    ):
         return site.settings.reserve_stock_duration_anonymous_user
 
     @staticmethod
     @load_site_callback
-    def resolve_reserve_stock_duration_authenticated_user(_, _info, site):
+    def resolve_reserve_stock_duration_authenticated_user(
+        _, _info: graphene.ResolveInfo, site
+    ):
         return site.settings.reserve_stock_duration_authenticated_user
 
     @staticmethod
     @load_site_callback
-    def resolve_limit_quantity_per_checkout(_, _info, site):
+    def resolve_limit_quantity_per_checkout(_, _info: graphene.ResolveInfo, site):
         return site.settings.limit_quantity_per_checkout
 
     @staticmethod
     @load_site_callback
-    def resolve_default_digital_max_downloads(_, _info, site):
+    def resolve_default_digital_max_downloads(_, _info: graphene.ResolveInfo, site):
         return site.settings.default_digital_max_downloads
 
     @staticmethod
     @load_site_callback
-    def resolve_default_digital_url_valid_days(_, _info, site):
+    def resolve_default_digital_url_valid_days(_, _info: graphene.ResolveInfo, site):
         return site.settings.default_digital_url_valid_days
 
     @staticmethod
-    def resolve_staff_notification_recipients(_, _info):
+    def resolve_staff_notification_recipients(_, _info: graphene.ResolveInfo):
         return account_models.StaffNotificationRecipient.objects.all()
 
     @staticmethod
-    def resolve_limits(_, _info):
+    def resolve_limits(_, _info: graphene.ResolveInfo):
         return LimitInfo(current_usage=Limits(), allowed_usage=Limits())
 
     @staticmethod
-    def resolve_version(_, _info):
+    def resolve_version(_, _info: graphene.ResolveInfo):
         return __version__
 
     @staticmethod
-    def resolve_schema_version(_, _info):
+    def resolve_schema_version(_, _info: graphene.ResolveInfo):
         major, minor, _ = __version__.split(".", 2)
         return f"{major}.{minor}"
 
@@ -520,10 +534,10 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_include_taxes_in_prices(_, _info, site):
+    def resolve_include_taxes_in_prices(_, _info: graphene.ResolveInfo, site):
         return site.settings.include_taxes_in_prices
 
     @staticmethod
     @load_site_callback
-    def resolve_display_gross_prices(_, _info, site):
+    def resolve_display_gross_prices(_, _info: graphene.ResolveInfo, site):
         return site.settings.display_gross_prices

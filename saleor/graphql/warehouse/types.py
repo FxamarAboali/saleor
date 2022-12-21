@@ -105,7 +105,7 @@ class Warehouse(ModelObjectType):
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
 
     @staticmethod
-    def resolve_shipping_zones(root, info, *_args, **kwargs):
+    def resolve_shipping_zones(root, info: graphene.ResolveInfo, *_args, **kwargs):
         from ..shipping.types import ShippingZoneCountableConnection
 
         instances = root.shipping_zones.all()
@@ -123,14 +123,14 @@ class Warehouse(ModelObjectType):
         return slice
 
     @staticmethod
-    def resolve_address(root, info):
+    def resolve_address(root, info: graphene.ResolveInfo):
         if hasattr(root, "is_object_deleted") and root.is_object_deleted:
             return root.address
 
         return AddressByIdLoader(info.context).load(root.address_id)
 
     @staticmethod
-    def resolve_company_name(root, info):
+    def resolve_company_name(root, info: graphene.ResolveInfo):
         def _resolve_company_name(address):
             return address.company_name
 
@@ -189,18 +189,18 @@ class Stock(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_quantity(root, _info):
+    def resolve_quantity(root, _info: graphene.ResolveInfo):
         return root.quantity
 
     @staticmethod
-    def resolve_quantity_allocated(root, _info):
+    def resolve_quantity_allocated(root, _info: graphene.ResolveInfo):
         return root.allocations.aggregate(
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
         )["quantity_allocated"]
 
     @staticmethod
     @load_site_callback
-    def resolve_quantity_reserved(root, _info, site):
+    def resolve_quantity_reserved(root, _info: graphene.ResolveInfo, site):
         if not is_reservation_enabled(site.settings):
             return 0
 
@@ -215,13 +215,13 @@ class Stock(ModelObjectType):
         )["quantity_reserved"]
 
     @staticmethod
-    def resolve_warehouse(root, info):
+    def resolve_warehouse(root, info: graphene.ResolveInfo):
         if root.warehouse_id:
             return WarehouseByIdLoader(info.context).load(root.warehouse_id)
         return None
 
     @staticmethod
-    def resolve_product_variant(root, info):
+    def resolve_product_variant(root, info: graphene.ResolveInfo):
         return (
             ProductVariantByIdLoader(info.context)
             .load(root.product_variant_id)
@@ -268,9 +268,9 @@ class Allocation(graphene.ObjectType):
             return None
 
     @staticmethod
-    def resolve_warehouse(root, _info):
+    def resolve_warehouse(root, _info: graphene.ResolveInfo):
         return root.stock.warehouse
 
     @staticmethod
-    def resolve_quantity(root, _info):
+    def resolve_quantity(root, _info: graphene.ResolveInfo):
         return root.quantity_allocated

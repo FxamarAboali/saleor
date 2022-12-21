@@ -1,6 +1,8 @@
 from collections import defaultdict
 from functools import partial, wraps
 
+import graphene
+
 from ...plugins.manager import get_plugins_manager
 from ...plugins.models import EmailTemplate
 from ..app.dataloaders import get_app_promise
@@ -52,7 +54,7 @@ def get_plugin_manager_promise(request):
 
 def plugin_manager_promise_callback(func):
     @wraps(func)
-    def _wrapper(root, info, *args, **kwargs):
+    def _wrapper(root, info: graphene.ResolveInfo, *args, **kwargs):
         return get_plugin_manager_promise(info.context).then(
             partial(func, root, info, *args, **kwargs)
         )

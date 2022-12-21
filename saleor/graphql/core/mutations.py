@@ -301,7 +301,7 @@ class BaseMutation(graphene.Mutation):
                 pass
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: graphene.ResolveInfo, instance):
         """Clean the instance that was created using the input data.
 
         Once an instance is created, this method runs `full_clean()` to perform
@@ -377,7 +377,7 @@ class BaseMutation(graphene.Mutation):
         return one_of_permissions_or_auth_filter_required(context, all_permissions)
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def mutate(cls, root, info: graphene.ResolveInfo, **data):
         set_mutation_flag_in_context(info.context)
         setup_context_user(info.context)
 
@@ -399,7 +399,7 @@ class BaseMutation(graphene.Mutation):
             return cls.handle_errors(e)
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
+    def perform_mutation(cls, _root, _info: graphene.ResolveInfo, **data):
         pass
 
     @classmethod
@@ -453,7 +453,9 @@ class BaseMutation(graphene.Mutation):
             cls.update_metadata(instance, private_metadata_list, is_private=True)
 
     @classmethod
-    def check_metadata_permissions(cls, info, object_id, private=False):
+    def check_metadata_permissions(
+        cls, info: graphene.ResolveInfo, object_id, private=False
+    ):
         type_name, db_id = graphene.Node.from_global_id(object_id)
 
         if private:
@@ -512,7 +514,7 @@ class ModelMutation(BaseMutation):
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
+    def clean_input(cls, info: graphene.ResolveInfo, instance, data, input_cls=None):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
@@ -577,7 +579,7 @@ class ModelMutation(BaseMutation):
         return cleaned_input
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: graphene.ResolveInfo, instance, cleaned_data):
         opts = instance._meta
         for f in chain(opts.many_to_many, opts.private_fields):
             if not hasattr(f, "save_form_data"):
@@ -591,7 +593,7 @@ class ModelMutation(BaseMutation):
         return cls(**{cls._meta.return_field_name: instance, "errors": []})
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: graphene.ResolveInfo, instance, cleaned_input):
         instance.save()
 
     @classmethod
@@ -606,7 +608,7 @@ class ModelMutation(BaseMutation):
         return cls._meta.object_type
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: graphene.ResolveInfo, **data):
         """Retrieve an instance from the supplied global id.
 
         The expected graphene type can be lazy (str).
@@ -623,12 +625,12 @@ class ModelMutation(BaseMutation):
         return instance
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: graphene.ResolveInfo, instance, cleaned_input):
         """Perform an action after saving an object and its m2m."""
         pass
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         """Perform model mutation.
 
         Depending on the input data, `mutate` either creates a new instance or
@@ -669,7 +671,7 @@ class ModelWithExtRefMutation(ModelMutation):
         return object_id
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: graphene.ResolveInfo, **data):
         """Retrieve an instance from the supplied global id.
 
         The expected graphene type can be lazy (str).
@@ -686,7 +688,7 @@ class ModelDeleteMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: graphene.ResolveInfo, instance):
         """Perform additional logic before deleting the model instance.
 
         Override this method to raise custom validation error and abort
@@ -694,7 +696,7 @@ class ModelDeleteMutation(ModelMutation):
         """
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         """Perform a mutation that deletes a model instance."""
         instance = cls.get_instance(info, **data)
 
@@ -742,7 +744,7 @@ class BaseBulkMutation(BaseMutation):
         return cls._meta.object_type
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: graphene.ResolveInfo, instance):
         """Perform additional logic.
 
         Override this method to raise custom validation error and prevent
@@ -750,12 +752,12 @@ class BaseBulkMutation(BaseMutation):
         """
 
     @classmethod
-    def bulk_action(cls, info, queryset, **kwargs):
+    def bulk_action(cls, info: graphene.ResolveInfo, queryset, **kwargs):
         """Implement action performed on queryset."""
         raise NotImplementedError
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, ids, **data):
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
         # Allow to pass empty list for dummy mutation
@@ -803,7 +805,7 @@ class BaseBulkMutation(BaseMutation):
         return count, errors
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def mutate(cls, root, info: graphene.ResolveInfo, **data):
         set_mutation_flag_in_context(info.context)
         setup_context_user(info.context)
 
@@ -828,7 +830,7 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         abstract = True
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: graphene.ResolveInfo, queryset):
         queryset.delete()
 
 
@@ -854,7 +856,7 @@ class FileUpload(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         file_data = info.context.FILES.get(data["file"])
 
         # add unique text fragment to the file name to prevent file overriding

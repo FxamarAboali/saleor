@@ -48,7 +48,7 @@ class ExportEvent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_user(root: models.ExportEvent, info):
+    def resolve_user(root: models.ExportEvent, info: graphene.ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AccountPermissions.MANAGE_STAFF
@@ -56,7 +56,7 @@ class ExportEvent(ModelObjectType):
         return root.user
 
     @staticmethod
-    def resolve_app(root: models.ExportEvent, info):
+    def resolve_app(root: models.ExportEvent, info: graphene.ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
@@ -64,7 +64,7 @@ class ExportEvent(ModelObjectType):
         return root.app
 
     @staticmethod
-    def resolve_message(root: models.ExportEvent, _info):
+    def resolve_message(root: models.ExportEvent, info: graphene.ResolveInfo):
         return root.parameters.get("message", None)
 
 
@@ -84,14 +84,14 @@ class ExportFile(ModelObjectType):
         model = models.ExportFile
 
     @staticmethod
-    def resolve_url(root: models.ExportFile, info):
+    def resolve_url(root: models.ExportFile, info: graphene.ResolveInfo):
         content_file = root.content_file
         if not content_file:
             return None
         return build_absolute_uri(content_file.url)
 
     @staticmethod
-    def resolve_user(root: models.ExportFile, info):
+    def resolve_user(root: models.ExportFile, info: graphene.ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AccountPermissions.MANAGE_STAFF
@@ -99,7 +99,7 @@ class ExportFile(ModelObjectType):
         return root.user
 
     @staticmethod
-    def resolve_app(root: models.ExportFile, info):
+    def resolve_app(root: models.ExportFile, info: graphene.ResolveInfo):
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor, root.user, AppPermission.MANAGE_APPS
@@ -107,7 +107,7 @@ class ExportFile(ModelObjectType):
         return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
-    def resolve_events(root: models.ExportFile, _info):
+    def resolve_events(root: models.ExportFile, _info: graphene.ResolveInfo):
         return root.events.all().order_by("pk")
 
 

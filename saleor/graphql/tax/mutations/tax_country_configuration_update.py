@@ -216,7 +216,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         ).delete()
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
+    def perform_mutation(cls, _root, _info: graphene.ResolveInfo, **data):
         country_code = data["country_code"]
         cleaned_data = cls.clean_input(**data)
         cls.update_default_rate(country_code, cleaned_data)

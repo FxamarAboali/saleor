@@ -114,7 +114,7 @@ class GiftCardEvent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_user(root: models.GiftCardEvent, info):
+    def resolve_user(root: models.GiftCardEvent, info: graphene.ResolveInfo):
         def _resolve_user(event_user):
             requester = get_user_or_app_from_context(info.context)
             check_is_owner_or_has_one_of_perms(
@@ -131,7 +131,7 @@ class GiftCardEvent(ModelObjectType):
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
-    def resolve_app(root: models.GiftCardEvent, info):
+    def resolve_app(root: models.GiftCardEvent, info: graphene.ResolveInfo):
         def _resolve_app(app):
             requester = get_user_or_app_from_context(info.context)
             check_is_owner_or_has_one_of_perms(
@@ -145,20 +145,20 @@ class GiftCardEvent(ModelObjectType):
         return AppByIdLoader(info.context).load(root.app_id).then(_resolve_app)
 
     @staticmethod
-    def resolve_message(root: models.GiftCardEvent, _info):
+    def resolve_message(root: models.GiftCardEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("message")
 
     @staticmethod
-    def resolve_email(root: models.GiftCardEvent, _info):
+    def resolve_email(root: models.GiftCardEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("email")
 
     @staticmethod
-    def resolve_order_id(root: models.GiftCardEvent, info):
+    def resolve_order_id(root: models.GiftCardEvent, info: graphene.ResolveInfo):
         order_id = root.order_id
         return graphene.Node.to_global_id("Order", order_id) if order_id else None
 
     @staticmethod
-    def resolve_order_number(root: models.GiftCardEvent, info):
+    def resolve_order_number(root: models.GiftCardEvent, info: graphene.ResolveInfo):
         def _resolve_order_number(order):
             return order.number
 
@@ -172,16 +172,16 @@ class GiftCardEvent(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_tags(root: models.GiftCardEvent, _info):
+    def resolve_tags(root: models.GiftCardEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("tags")
 
     @staticmethod
-    def resolve_old_tags(root: models.GiftCardEvent, _info):
+    def resolve_old_tags(root: models.GiftCardEvent, _info: graphene.ResolveInfo):
         return root.parameters.get("old_tags")
 
     @staticmethod
     @traced_resolver
-    def resolve_balance(root: models.GiftCardEvent, _info):
+    def resolve_balance(root: models.GiftCardEvent, _info: graphene.ResolveInfo):
         balance = root.parameters.get("balance")
         if balance is None:
             return None
@@ -200,14 +200,16 @@ class GiftCardEvent(ModelObjectType):
         return GiftCardEventBalance(**balance_data)
 
     @staticmethod
-    def resolve_expiry_date(root: models.GiftCardEvent, _info):
+    def resolve_expiry_date(root: models.GiftCardEvent, _info: graphene.ResolveInfo):
         expiry_date = root.parameters.get("expiry_date")
         return (
             datetime.datetime.strptime(expiry_date, "%Y-%m-%d") if expiry_date else None
         )
 
     @staticmethod
-    def resolve_old_expiry_date(root: models.GiftCardEvent, _info):
+    def resolve_old_expiry_date(
+        root: models.GiftCardEvent, _info: graphene.ResolveInfo
+    ):
         expiry_date = root.parameters.get("old_expiry_date")
         return (
             datetime.datetime.strptime(expiry_date, "%Y-%m-%d") if expiry_date else None
@@ -349,15 +351,15 @@ class GiftCard(ModelObjectType):
         model = models.GiftCard
 
     @staticmethod
-    def resolve_created(root: models.GiftCard, _info):
+    def resolve_created(root: models.GiftCard, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_last_4_code_chars(root: models.GiftCard, _info):
+    def resolve_last_4_code_chars(root: models.GiftCard, _info: graphene.ResolveInfo):
         return root.display_code
 
     @staticmethod
-    def resolve_code(root: models.GiftCard, info):
+    def resolve_code(root: models.GiftCard, info: graphene.ResolveInfo):
         def _resolve_code(user):
             requestor = get_user_or_app_from_context(info.context)
             # Gift card code can be fetched by the staff user and app
@@ -386,7 +388,7 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_created_by(root: models.GiftCard, info):
+    def resolve_created_by(root: models.GiftCard, info: graphene.ResolveInfo):
         def _resolve_created_by(user):
             requestor = get_user_or_app_from_context(info.context)
             check_is_owner_or_has_one_of_perms(
@@ -400,7 +402,7 @@ class GiftCard(ModelObjectType):
         return UserByUserIdLoader(info.context).load(root.created_by_id)
 
     @staticmethod
-    def resolve_used_by(root: models.GiftCard, info):
+    def resolve_used_by(root: models.GiftCard, info: graphene.ResolveInfo):
         def _resolve_used_by(user):
             requestor = get_user_or_app_from_context(info.context)
             if is_owner_or_has_one_of_perms(
@@ -418,7 +420,7 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_created_by_email(root: models.GiftCard, info):
+    def resolve_created_by_email(root: models.GiftCard, info: graphene.ResolveInfo):
         def _resolve_created_by_email(user):
             requester = get_user_or_app_from_context(info.context)
             if is_owner_or_has_one_of_perms(
@@ -437,7 +439,7 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_used_by_email(root: models.GiftCard, info):
+    def resolve_used_by_email(root: models.GiftCard, info: graphene.ResolveInfo):
         def _resolve_used_by_email(user):
             requester = get_user_or_app_from_context(info.context)
             if is_owner_or_has_one_of_perms(
@@ -456,7 +458,7 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_app(root: models.GiftCard, info):
+    def resolve_app(root: models.GiftCard, info: graphene.ResolveInfo):
         def _resolve_app(app):
             requester = get_user_or_app_from_context(info.context)
             check_is_owner_or_has_one_of_perms(
@@ -470,7 +472,7 @@ class GiftCard(ModelObjectType):
         return AppByIdLoader(info.context).load(root.app_id).then(_resolve_app)
 
     @staticmethod
-    def resolve_product(root: models.GiftCard, info):
+    def resolve_product(root: models.GiftCard, info: graphene.ResolveInfo):
         if root.product_id is None:
             return None
         product = ProductByIdLoader(info.context).load(root.product_id)
@@ -479,7 +481,7 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_events(root: models.GiftCard, info, **kwargs):
+    def resolve_events(root: models.GiftCard, info: graphene.ResolveInfo, **kwargs):
         def filter_events(events):
             event_filter = kwargs.get("filter", {})
             if event_type_value := event_filter.get("type"):
@@ -495,12 +497,12 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_tags(root: models.GiftCard, info):
+    def resolve_tags(root: models.GiftCard, info: graphene.ResolveInfo):
         return GiftCardTagsByGiftCardIdLoader(info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
-    def resolve_bought_in_channel(root: models.GiftCard, info):
+    def resolve_bought_in_channel(root: models.GiftCard, info: graphene.ResolveInfo):
         def with_bought_event(events):
             bought_event = None
             for event in events:
@@ -538,7 +540,7 @@ class GiftCard(ModelObjectType):
 
     # DEPRECATED
     @staticmethod
-    def resolve_user(root: models.GiftCard, info):
+    def resolve_user(root: models.GiftCard, info: graphene.ResolveInfo):
         def _resolve_user(user):
             requestor = get_user_or_app_from_context(info.context)
             if is_owner_or_has_one_of_perms(
@@ -556,11 +558,11 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_end_date(root: models.GiftCard, _info):
+    def resolve_end_date(root: models.GiftCard, _info: graphene.ResolveInfo):
         return root.expiry_date
 
     @staticmethod
-    def resolve_start_date(_root: models.GiftCard, _info):
+    def resolve_start_date(_root: models.GiftCard, _info: graphene.ResolveInfo):
         return None
 
 

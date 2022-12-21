@@ -48,7 +48,7 @@ class TaxExemptionManage(BaseMutation):
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def validate_input(cls, info, data):
+    def validate_input(cls, info: graphene.ResolveInfo, data):
         obj = cls.get_node_or_error(info, data["id"])
         if not isinstance(obj, (Order, Checkout)):
             code = error_codes.TaxExemptionManageErrorCode.NOT_FOUND.value
@@ -66,12 +66,12 @@ class TaxExemptionManage(BaseMutation):
             raise ValidationError(code=code, message=message)
 
     @classmethod
-    def get_object(cls, info, object_global_id):
+    def get_object(cls, info: graphene.ResolveInfo, object_global_id):
         obj = graphene.Node.get_node_from_global_id(info, object_global_id)
         return obj
 
     @classmethod
-    def _invalidate_checkout_prices(cls, info, checkout):
+    def _invalidate_checkout_prices(cls, info: graphene.ResolveInfo, checkout):
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
 
@@ -86,7 +86,7 @@ class TaxExemptionManage(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         cls.validate_input(info, data)
         obj = cls.get_object(info, data["id"])
         obj.tax_exemption = data["tax_exemption"]

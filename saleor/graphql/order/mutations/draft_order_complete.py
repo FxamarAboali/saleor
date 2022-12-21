@@ -65,7 +65,7 @@ class DraftOrderComplete(BaseMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, id):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, id):
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(
             info,

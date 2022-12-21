@@ -137,7 +137,7 @@ class CheckoutLine(ModelObjectType):
         model = models.CheckoutLine
 
     @staticmethod
-    def resolve_variant(root: models.CheckoutLine, info):
+    def resolve_variant(root: models.CheckoutLine, info: graphene.ResolveInfo):
         variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
         channel = ChannelByCheckoutLineIDLoader(info.context).load(root.id)
 
@@ -147,7 +147,7 @@ class CheckoutLine(ModelObjectType):
 
     @staticmethod
     @prevent_sync_event_circular_query
-    def resolve_unit_price(root, info):
+    def resolve_unit_price(root, info: graphene.ResolveInfo):
         def with_checkout(data):
             checkout, manager = data
             discounts = DiscountsByDateTimeLoader(info.context).load(
@@ -193,7 +193,7 @@ class CheckoutLine(ModelObjectType):
         ).then(with_checkout)
 
     @staticmethod
-    def resolve_undiscounted_unit_price(root, info):
+    def resolve_undiscounted_unit_price(root, info: graphene.ResolveInfo):
         def with_checkout(checkout):
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
@@ -231,7 +231,7 @@ class CheckoutLine(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_total_price(root, info):
+    def resolve_total_price(root, info: graphene.ResolveInfo):
         def with_checkout(data):
             checkout, manager = data
             discounts = DiscountsByDateTimeLoader(info.context).load(
@@ -269,7 +269,7 @@ class CheckoutLine(ModelObjectType):
         ).then(with_checkout)
 
     @staticmethod
-    def resolve_undiscounted_total_price(root, info):
+    def resolve_undiscounted_total_price(root, info: graphene.ResolveInfo):
         def with_checkout(checkout):
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
@@ -304,7 +304,9 @@ class CheckoutLine(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_requires_shipping(root: models.CheckoutLine, info):
+    def resolve_requires_shipping(
+        root: models.CheckoutLine, info: graphene.ResolveInfo
+    ):
         def is_shipping_required(product_type):
             return product_type.is_shipping_required
 
@@ -330,7 +332,7 @@ class DeliveryMethod(graphene.Union):
         types = (Warehouse, ShippingMethod)
 
     @classmethod
-    def resolve_type(cls, instance, info):
+    def resolve_type(cls, instance, info: graphene.ResolveInfo):
         if isinstance(instance, ShippingMethodData):
             return ShippingMethod
         if isinstance(instance, warehouse_models.Warehouse):
@@ -467,7 +469,7 @@ class Checkout(ModelObjectType):
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
 
     @staticmethod
-    def resolve_created(root: models.Checkout, _info):
+    def resolve_created(root: models.Checkout, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
@@ -475,19 +477,19 @@ class Checkout(ModelObjectType):
         return graphene.Node.to_global_id("Checkout", root.pk)
 
     @staticmethod
-    def resolve_shipping_address(root: models.Checkout, info):
+    def resolve_shipping_address(root: models.Checkout, info: graphene.ResolveInfo):
         if not root.shipping_address_id:
             return
         return AddressByIdLoader(info.context).load(root.shipping_address_id)
 
     @staticmethod
-    def resolve_billing_address(root: models.Checkout, info):
+    def resolve_billing_address(root: models.Checkout, info: graphene.ResolveInfo):
         if not root.billing_address_id:
             return
         return AddressByIdLoader(info.context).load(root.billing_address_id)
 
     @staticmethod
-    def resolve_user(root: models.Checkout, info):
+    def resolve_user(root: models.Checkout, info: graphene.ResolveInfo):
         if not root.user_id:
             return None
         requestor = get_user_or_app_from_context(info.context)
@@ -497,11 +499,11 @@ class Checkout(ModelObjectType):
         return root.user
 
     @staticmethod
-    def resolve_email(root: models.Checkout, _info):
+    def resolve_email(root: models.Checkout, _info: graphene.ResolveInfo):
         return root.get_customer_email()
 
     @classmethod
-    def resolve_shipping_method(cls, root: models.Checkout, info):
+    def resolve_shipping_method(cls, root: models.Checkout, info: graphene.ResolveInfo):
         def with_checkout_info(checkout_info):
             delivery_method = checkout_info.delivery_method_info.delivery_method
             if not delivery_method or not isinstance(
@@ -519,7 +521,9 @@ class Checkout(ModelObjectType):
     @classmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_shipping_methods(cls, root: models.Checkout, info):
+    def resolve_shipping_methods(
+        cls, root: models.Checkout, info: graphene.ResolveInfo
+    ):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
@@ -527,7 +531,7 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_delivery_method(root: models.Checkout, info):
+    def resolve_delivery_method(root: models.Checkout, info: graphene.ResolveInfo):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
@@ -537,7 +541,7 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_quantity(root: models.Checkout, info):
+    def resolve_quantity(root: models.Checkout, info: graphene.ResolveInfo):
         checkout_info = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
             root.token
         )
@@ -550,7 +554,7 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_total_price(root: models.Checkout, info):
+    def resolve_total_price(root: models.Checkout, info: graphene.ResolveInfo):
         def calculate_total_price(data):
             address, lines, checkout_info, discounts, manager = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
@@ -579,7 +583,7 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_subtotal_price(root: models.Checkout, info):
+    def resolve_subtotal_price(root: models.Checkout, info: graphene.ResolveInfo):
         def calculate_subtotal_price(data):
             address, lines, checkout_info, discounts, manager = data
             return calculations.checkout_subtotal(
@@ -608,7 +612,7 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_shipping_price(root: models.Checkout, info):
+    def resolve_shipping_price(root: models.Checkout, info: graphene.ResolveInfo):
         def calculate_shipping_price(data):
             address, lines, checkout_info, discounts, manager = data
             return calculations.checkout_shipping_price(
@@ -636,13 +640,15 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_lines(root: models.Checkout, info):
+    def resolve_lines(root: models.Checkout, info: graphene.ResolveInfo):
         return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
 
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_available_shipping_methods(root: models.Checkout, info):
+    def resolve_available_shipping_methods(
+        root: models.Checkout, info: graphene.ResolveInfo
+    ):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
@@ -651,7 +657,9 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_available_collection_points(root: models.Checkout, info):
+    def resolve_available_collection_points(
+        root: models.Checkout, info: graphene.ResolveInfo
+    ):
         def get_available_collection_points(lines):
             return get_valid_collection_points_for_checkout(lines, root.channel_id)
 
@@ -664,17 +672,19 @@ class Checkout(ModelObjectType):
     @staticmethod
     @prevent_sync_event_circular_query
     @plugin_manager_promise_callback
-    def resolve_available_payment_gateways(root: models.Checkout, _info, manager):
+    def resolve_available_payment_gateways(
+        root: models.Checkout, _info: graphene.ResolveInfo, manager
+    ):
         return manager.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )
 
     @staticmethod
-    def resolve_gift_cards(root: models.Checkout, _info):
+    def resolve_gift_cards(root: models.Checkout, _info: graphene.ResolveInfo):
         return root.gift_cards.all()
 
     @staticmethod
-    def resolve_is_shipping_required(root: models.Checkout, info):
+    def resolve_is_shipping_required(root: models.Checkout, info: graphene.ResolveInfo):
         def is_shipping_required(lines):
             product_ids = [line_info.product.id for line_info in lines]
 
@@ -694,13 +704,15 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_language_code(root, _info):
+    def resolve_language_code(root, _info: graphene.ResolveInfo):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
     @traced_resolver
     @load_site_callback
-    def resolve_stock_reservation_expires(root: models.Checkout, info, site):
+    def resolve_stock_reservation_expires(
+        root: models.Checkout, info: graphene.ResolveInfo, site
+    ):
         if not is_reservation_enabled(site.settings):
             return None
 
@@ -720,11 +732,11 @@ class Checkout(ModelObjectType):
     @one_of_permissions_required(
         [CheckoutPermissions.MANAGE_CHECKOUTS, PaymentPermissions.HANDLE_PAYMENTS]
     )
-    def resolve_transactions(root: models.Checkout, info):
+    def resolve_transactions(root: models.Checkout, info: graphene.ResolveInfo):
         return TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_display_gross_prices(root: models.Checkout, info):
+    def resolve_display_gross_prices(root: models.Checkout, info: graphene.ResolveInfo):
         tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
         country_code = root.get_country()
 
@@ -751,7 +763,7 @@ class Checkout(ModelObjectType):
         return tax_config.then(load_tax_country_exceptions)
 
     @staticmethod
-    def resolve_metadata(root: models.Checkout, info):
+    def resolve_metadata(root: models.Checkout, info: graphene.ResolveInfo):
 
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
@@ -766,7 +778,9 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_metafield(root: models.Checkout, info, *, key: str):
+    def resolve_metafield(
+        root: models.Checkout, info: graphene.ResolveInfo, *, key: str
+    ):
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
@@ -778,7 +792,9 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_metafields(root: models.Checkout, info, *, keys=None):
+    def resolve_metafields(
+        root: models.Checkout, info: graphene.ResolveInfo, *, keys=None
+    ):
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
@@ -792,7 +808,7 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_private_metadata(root: models.Checkout, info):
+    def resolve_private_metadata(root: models.Checkout, info: graphene.ResolveInfo):
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)
@@ -806,7 +822,9 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_private_metafield(root: models.Checkout, info, *, key: str):
+    def resolve_private_metafield(
+        root: models.Checkout, info: graphene.ResolveInfo, *, key: str
+    ):
         def resolve_private_metafield_with_privilege_check(metadata_storage):
             MetaResolvers.check_private_metadata_privilege(metadata_storage, info)
             return metadata_storage.private_metadata.get(key)
@@ -824,7 +842,9 @@ class Checkout(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_private_metafields(root: models.Checkout, info, *, keys=None):
+    def resolve_private_metafields(
+        root: models.Checkout, info: graphene.ResolveInfo, *, keys=None
+    ):
         def resolve_private_metafields_with_privilege(metadata_storage):
             MetaResolvers.check_private_metadata_privilege(metadata_storage, info)
             return _filter_metadata(metadata_storage.private_metadata, keys)
@@ -842,7 +862,7 @@ class Checkout(ModelObjectType):
         )
 
     @classmethod
-    def resolve_type(cls, root: models.Checkout, _info):
+    def resolve_type(cls, root: models.Checkout, _info: graphene.ResolveInfo):
         item_type, _ = MetaResolvers.resolve_object_with_metadata_type(
             root.metadata_storage
         )

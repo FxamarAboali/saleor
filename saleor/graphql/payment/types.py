@@ -45,11 +45,11 @@ class Transaction(ModelObjectType):
         model = models.Transaction
 
     @staticmethod
-    def resolve_created(root: models.Transaction, _info):
+    def resolve_created(root: models.Transaction, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_amount(root: models.Transaction, _info):
+    def resolve_amount(root: models.Transaction, _info: graphene.ResolveInfo):
         return root.get_amount()
 
 
@@ -153,19 +153,19 @@ class Payment(ModelObjectType):
         model = models.Payment
 
     @staticmethod
-    def resolve_created(root: models.Payment, _info):
+    def resolve_created(root: models.Payment, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_modified(root: models.Payment, _info):
+    def resolve_modified(root: models.Payment, _info: graphene.ResolveInfo):
         return root.modified_at
 
     @staticmethod
-    def resolve_customer_ip_address(root: models.Payment, _info):
+    def resolve_customer_ip_address(root: models.Payment, _info: graphene.ResolveInfo):
         return root.customer_ip_address
 
     @staticmethod
-    def resolve_actions(root: models.Payment, _info):
+    def resolve_actions(root: models.Payment, _info: graphene.ResolveInfo):
         actions = []
         if root.can_capture():
             actions.append(OrderAction.CAPTURE)
@@ -177,31 +177,35 @@ class Payment(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_total(root: models.Payment, _info):
+    def resolve_total(root: models.Payment, _info: graphene.ResolveInfo):
         return root.get_total()
 
     @staticmethod
-    def resolve_captured_amount(root: models.Payment, _info):
+    def resolve_captured_amount(root: models.Payment, _info: graphene.ResolveInfo):
         return root.get_captured_amount()
 
     @staticmethod
-    def resolve_transactions(root: models.Payment, info):
+    def resolve_transactions(root: models.Payment, info: graphene.ResolveInfo):
         return TransactionByPaymentIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_available_refund_amount(root: models.Payment, _info):
+    def resolve_available_refund_amount(
+        root: models.Payment, _info: graphene.ResolveInfo
+    ):
         if not root.can_refund():
             return None
         return root.get_captured_amount()
 
     @staticmethod
-    def resolve_available_capture_amount(root: models.Payment, _info):
+    def resolve_available_capture_amount(
+        root: models.Payment, _info: graphene.ResolveInfo
+    ):
         if not root.can_capture():
             return None
         return Money(amount=root.get_charge_amount(), currency=root.currency)
 
     @staticmethod
-    def resolve_credit_card(root: models.Payment, _info):
+    def resolve_credit_card(root: models.Payment, _info: graphene.ResolveInfo):
         data = {
             "brand": root.cc_brand,
             "exp_month": root.cc_exp_month,
@@ -214,14 +218,14 @@ class Payment(ModelObjectType):
         return CreditCard(**data)
 
     @staticmethod
-    def resolve_metadata(root: models.Payment, info):
+    def resolve_metadata(root: models.Payment, info: graphene.ResolveInfo):
         permissions = public_payment_permissions(info, root.pk)
         requester = get_user_or_app_from_context(info.context)
         if not requester.has_perms(permissions):
             raise PermissionDenied(permissions=permissions)
         return resolve_metadata(root.metadata)
 
-    def resolve_checkout(root: models.Payment, info):
+    def resolve_checkout(root: models.Payment, info: graphene.ResolveInfo):
         if not root.checkout_id:
             return None
         return CheckoutByTokenLoader(info.context).load(root.checkout_id)
@@ -304,31 +308,39 @@ class TransactionItem(ModelObjectType):
         model = models.TransactionItem
 
     @staticmethod
-    def resolve_actions(root: models.TransactionItem, _info):
+    def resolve_actions(root: models.TransactionItem, _info: graphene.ResolveInfo):
         return root.available_actions
 
     @staticmethod
-    def resolve_charged_amount(root: models.TransactionItem, _info):
+    def resolve_charged_amount(
+        root: models.TransactionItem, _info: graphene.ResolveInfo
+    ):
         return root.amount_charged
 
     @staticmethod
-    def resolve_authorized_amount(root: models.TransactionItem, _info):
+    def resolve_authorized_amount(
+        root: models.TransactionItem, _info: graphene.ResolveInfo
+    ):
         return root.amount_authorized
 
     @staticmethod
-    def resolve_voided_amount(root: models.TransactionItem, _info):
+    def resolve_voided_amount(
+        root: models.TransactionItem, _info: graphene.ResolveInfo
+    ):
         return root.amount_voided
 
     @staticmethod
-    def resolve_refunded_amount(root: models.TransactionItem, _info):
+    def resolve_refunded_amount(
+        root: models.TransactionItem, _info: graphene.ResolveInfo
+    ):
         return root.amount_refunded
 
     @staticmethod
-    def resolve_order(root: models.TransactionItem, info):
+    def resolve_order(root: models.TransactionItem, info: graphene.ResolveInfo):
         if not root.order_id:
             return
         return OrderByIdLoader(info.context).load(root.order_id)
 
     @staticmethod
-    def resolve_events(root: models.TransactionItem, info):
+    def resolve_events(root: models.TransactionItem, info: graphene.ResolveInfo):
         return TransactionEventByTransactionIdLoader(info.context).load(root.id)

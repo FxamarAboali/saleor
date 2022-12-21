@@ -75,12 +75,12 @@ class GiftCardQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_gift_card(_root, _info, **data):
+    def resolve_gift_card(_root, _info: graphene.ResolveInfo, **data):
         _, id = from_global_id_or_error(data.get("id"), GiftCard)
         return resolve_gift_card(id)
 
     @staticmethod
-    def resolve_gift_cards(_root, info, **data):
+    def resolve_gift_cards(_root, info: graphene.ResolveInfo, **data):
         sorting_by_balance = "sort_by" in data and "current_balance_amount" in data[
             "sort_by"
         ].get("field", [])
@@ -92,11 +92,11 @@ class GiftCardQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, data, GiftCardCountableConnection)
 
     @staticmethod
-    def resolve_gift_card_currencies(_root, _info):
+    def resolve_gift_card_currencies(_root, _info: graphene.ResolveInfo):
         return set(models.GiftCard.objects.values_list("currency", flat=True))
 
     @staticmethod
-    def resolve_gift_card_tags(_root, info, **data):
+    def resolve_gift_card_tags(_root, info: graphene.ResolveInfo, **data):
         qs = resolve_gift_card_tags()
         qs = filter_connection_queryset(qs, data)
         return create_connection_slice(qs, info, data, GiftCardTagCountableConnection)

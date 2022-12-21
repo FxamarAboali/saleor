@@ -65,11 +65,13 @@ class PageType(ModelObjectType):
         return models.PageType
 
     @staticmethod
-    def resolve_attributes(root: models.PageType, info):
+    def resolve_attributes(root: models.PageType, info: graphene.ResolveInfo):
         return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_available_attributes(root: models.PageType, info, **kwargs):
+    def resolve_available_attributes(
+        root: models.PageType, info: graphene.ResolveInfo, **kwargs
+    ):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         )
@@ -77,7 +79,7 @@ class PageType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
-    def resolve_has_pages(root: models.PageType, info):
+    def resolve_has_pages(root: models.PageType, info: graphene.ResolveInfo):
         return (
             PagesByPageTypeIdLoader(info.context)
             .load(root.pk)
@@ -85,7 +87,7 @@ class PageType(ModelObjectType):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["PageType"], _info):
+    def __resolve_references(roots: List["PageType"], _info: graphene.ResolveInfo):
         return resolve_federation_references(PageType, roots, models.PageType.objects)
 
 
@@ -134,24 +136,24 @@ class Page(ModelObjectType):
         model = models.Page
 
     @staticmethod
-    def resolve_publication_date(root: models.Page, _info):
+    def resolve_publication_date(root: models.Page, _info: graphene.ResolveInfo):
         return root.published_at
 
     @staticmethod
-    def resolve_created(root: models.Page, _info):
+    def resolve_created(root: models.Page, _info: graphene.ResolveInfo):
         return root.created_at
 
     @staticmethod
-    def resolve_page_type(root: models.Page, info):
+    def resolve_page_type(root: models.Page, info: graphene.ResolveInfo):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
     @staticmethod
-    def resolve_content_json(root: models.Page, _info):
+    def resolve_content_json(root: models.Page, _info: graphene.ResolveInfo):
         content = root.content
         return content if content is not None else {}
 
     @staticmethod
-    def resolve_attributes(root: models.Page, info):
+    def resolve_attributes(root: models.Page, info: graphene.ResolveInfo):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 
 

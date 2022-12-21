@@ -84,18 +84,20 @@ class Category(ModelObjectType):
         model = models.Category
 
     @staticmethod
-    def resolve_ancestors(root: models.Category, info, **kwargs):
+    def resolve_ancestors(root: models.Category, info: graphene.ResolveInfo, **kwargs):
         return create_connection_slice(
             root.get_ancestors(), info, kwargs, CategoryCountableConnection
         )
 
     @staticmethod
-    def resolve_description_json(root: models.Category, _info):
+    def resolve_description_json(root: models.Category, _info: graphene.ResolveInfo):
         description = root.description
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_background_image(root: models.Category, info, size=None, format=None):
+    def resolve_background_image(
+        root: models.Category, info: graphene.ResolveInfo, size=None, format=None
+    ):
         if not root.background_image:
             return
 
@@ -117,7 +119,7 @@ class Category(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_children(root: models.Category, info, **kwargs):
+    def resolve_children(root: models.Category, info: graphene.ResolveInfo, **kwargs):
         def slice_children_categories(children):
             return create_connection_slice(
                 children, info, kwargs, CategoryCountableConnection
@@ -130,12 +132,14 @@ class Category(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_url(root: models.Category, _info):
+    def resolve_url(root: models.Category, _info: graphene.ResolveInfo):
         return ""
 
     @staticmethod
     @traced_resolver
-    def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
+    def resolve_products(
+        root: models.Category, info: graphene.ResolveInfo, *, channel=None, **kwargs
+    ):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -162,7 +166,7 @@ class Category(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def __resolve_references(roots: List["Category"], _info):
+    def __resolve_references(roots: List["Category"], _info: graphene.ResolveInfo):
         return resolve_federation_references(Category, roots, models.Category.objects)
 
 

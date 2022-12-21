@@ -123,7 +123,7 @@ class ShopSettingsUpdate(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def clean_input(cls, _info, _instance, data):
+    def clean_input(cls, _info: graphene.ResolveInfo, _instance, data):
         if data.get("customer_set_password_url"):
             try:
                 validate_storefront_url(data["customer_set_password_url"])
@@ -165,7 +165,7 @@ class ShopSettingsUpdate(BaseMutation):
         return instance
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         site = get_site_promise(info.context).get()
         instance = site.settings
         data = data.get("input")
@@ -192,7 +192,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         site = get_site_promise(info.context).get()
         data = data.get("input")
 
@@ -226,7 +226,7 @@ class ShopDomainUpdate(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         site = get_site_promise(info.context).get()
         data = data.get("input")
         domain = data.get("domain")
@@ -250,7 +250,7 @@ class ShopFetchTaxRates(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo):
         # This mutation is deprecated and will be removed in Saleor 4.0.
         return ShopFetchTaxRates(shop=Shop())
 
@@ -285,7 +285,7 @@ class StaffNotificationRecipientCreate(ModelMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: graphene.ResolveInfo, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         cls.validate_input(instance, cleaned_input)
         email = cleaned_input.pop("email", None)
@@ -392,7 +392,7 @@ class OrderSettingsUpdate(BaseMutation):
         error_type_field = "order_settings_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         FIELDS = [
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
@@ -434,7 +434,7 @@ class GiftCardSettingsUpdate(BaseMutation):
         error_type_class = GiftCardSettingsError
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: graphene.ResolveInfo, **data):
         site = get_site_promise(info.context).get()
         instance = site.settings
         input = data["input"]

@@ -133,12 +133,12 @@ class OrderQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_homepage_events(_root, info, **kwargs):
+    def resolve_homepage_events(_root, info: graphene.ResolveInfo, **kwargs):
         qs = resolve_homepage_events()
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
     @staticmethod
-    def resolve_order(_root, _info, **data):
+    def resolve_order(_root, _info: graphene.ResolveInfo, **data):
         node_id = data.get("id")
         ext_ref = data.get("external_reference")
         validate_one_of_args_is_in_query("id", node_id, "external_reference", ext_ref)
@@ -149,7 +149,7 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(id)
 
     @staticmethod
-    def resolve_orders(_root, info, *, channel=None, **kwargs):
+    def resolve_orders(_root, info: graphene.ResolveInfo, *, channel=None, **kwargs):
         if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
@@ -168,7 +168,7 @@ class OrderQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @staticmethod
-    def resolve_draft_orders(_root, info, **kwargs):
+    def resolve_draft_orders(_root, info: graphene.ResolveInfo, **kwargs):
         if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
@@ -187,11 +187,13 @@ class OrderQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @staticmethod
-    def resolve_orders_total(_root, info, *, period, channel=None):
+    def resolve_orders_total(
+        _root, info: graphene.ResolveInfo, *, period, channel=None
+    ):
         return resolve_orders_total(info, period, channel)
 
     @staticmethod
-    def resolve_order_by_token(_root, _info, *, token):
+    def resolve_order_by_token(_root, _info: graphene.ResolveInfo, *, token):
         return resolve_order_by_token(token)
 
 

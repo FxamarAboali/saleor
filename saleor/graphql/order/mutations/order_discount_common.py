@@ -28,7 +28,7 @@ class OrderDiscountCommon(BaseMutation):
         abstract = True
 
     @classmethod
-    def validate_order(cls, info, order):
+    def validate_order(cls, info: graphene.ResolveInfo, order):
         if not (order.is_draft() or order.is_unconfirmed()):
             error_msg = "Only draft and unconfirmed order can be modified."
             raise ValidationError(
@@ -46,7 +46,9 @@ class OrderDiscountCommon(BaseMutation):
         return ValidationError({"value": ValidationError(error_msg, code=code)})
 
     @classmethod
-    def validate_order_discount_input(cls, _info, max_total: Money, input: dict):
+    def validate_order_discount_input(
+        cls, _info: graphene.ResolveInfo, max_total: Money, input: dict
+    ):
         value_type = input["value_type"]
         value = input["value"]
         if value_type == DiscountValueTypeEnum.FIXED:

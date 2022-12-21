@@ -56,11 +56,13 @@ class WarehouseQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_warehouse(_root, _info, id=None, external_reference=None):
+    def resolve_warehouse(
+        _root, _info: graphene.ResolveInfo, id=None, external_reference=None
+    ):
         return resolve_by_global_id_or_ext_ref(models.Warehouse, id, external_reference)
 
     @staticmethod
-    def resolve_warehouses(_root, info, **kwargs):
+    def resolve_warehouses(_root, info: graphene.ResolveInfo, **kwargs):
         qs = resolve_warehouses()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, WarehouseCountableConnection)
@@ -89,13 +91,13 @@ class StockQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_stock(_root, _info, **kwargs):
+    def resolve_stock(_root, _info: graphene.ResolveInfo, **kwargs):
         stock_id = kwargs.get("id")
         _, id = from_global_id_or_error(stock_id, Stock)
         return resolve_stock(id)
 
     @staticmethod
-    def resolve_stocks(_root, info, **kwargs):
+    def resolve_stocks(_root, info: graphene.ResolveInfo, **kwargs):
         qs = resolve_stocks()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, StockCountableConnection)
