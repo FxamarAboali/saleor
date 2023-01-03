@@ -11,14 +11,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
   - Add `filter` argument to `Category.products`
   - Add `sortBy` argument to `Category.products`
-  - Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models:
-    - `Product`
-    - `ProductVariant`
-    - `Attribute`
-    - `AttributeValue`
-    - `Order`
-    - `User`
-    - `Warehouse`
+- Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models: #11410 by @zedzior
+  - `Product`
+  - `ProductVariant`
+  - `Attribute`
+  - `AttributeValue`
+  - `Order`
+  - `User`
+  - `Warehouse`
+- Add `WebhookDryRun` mutation - #11548 by @zedzior
 
 ### Other changes
 - Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
